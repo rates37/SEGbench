@@ -38,7 +38,6 @@ def test_version() -> None:
 @pytest.mark.parametrize(
     "argv",
     [
-        ["mirror", "sync", "--bug", "lp-1"],
         ["run"],
         ["grade"],
         ["export"],
@@ -50,6 +49,16 @@ def test_stubs_raise_not_implemented(argv: list[str]) -> None:
     assert result.exit_code != 0
     assert isinstance(result.exception, NotImplementedError)
     assert "phase" in str(result.exception)
+
+
+def test_mirror_sync_reports_a_clear_error_for_an_unknown_bug(tmp_path) -> None:
+    config = tmp_path / "segbench.toml"
+    config.write_text(f'[paths]\ncorpus = "{tmp_path / "corpus"}"\n', encoding="utf-8")
+
+    result = runner.invoke(app, ["--config", str(config), "mirror", "sync", "--bug", "lp-1"])
+
+    assert result.exit_code == 1
+    assert "error" in result.stdout.lower()
 
 
 def test_verbose_flag_is_accepted() -> None:

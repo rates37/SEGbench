@@ -38,6 +38,7 @@ class PathsConfig(BaseModel):
     corpus: Path = Path("corpus")
     results: Path = Path("results")
     image_cache: Path = Path(".cache/images")
+    mirror_cache: Path = Path(".cache/mirror")
     log_file: Path = Path("results/segbench.jsonl")
 
 

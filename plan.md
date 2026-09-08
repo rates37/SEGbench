@@ -329,6 +329,72 @@ records `outcome: "cost_exceeded"` and grades whatever answer file exists.
 Streaming responses need the usage block from the terminating SSE event; if a provider omits
 usage, fall back to a `tiktoken`-based estimate and mark the cost `estimated: true`.
 
+### 5.3 Git mirror decisions (phase 4)
+
+Detail settled while implementing the truncating git mirror and E1/E2 seeding (`segbench.netpol
+.gitmirror`), recorded here so the code and the plan agree.
+
+**Truncation is export-and-recommit, never a graft.** The obvious "quick" truncation is a graft or
+filter-branch on a clone of the real history: point a new parentless commit at the old tree and
+delete the other refs. That leaves the *objects* of every later commit sitting in the pack,
+unreachable from any ref but not gone — `git cat-file` still reads them, and a `gc` that fails to
+prune leaves the fix sitting right there in `.git/objects`. Instead, `truncate_to_rootless` `git
+archive`s the tree at the cutoff commit into a directory that was never seeded from the source
+repository's object database, commits it fresh (fixed author/committer identity and timestamp —
+the snapshot commit's own metadata carries no information), and pushes that into a brand-new bare
+repository. There is nothing to accidentally retain because nothing from after the cutoff was ever
+copied in. Cached per source commit via a marker file in the destination, so a repeat request for
+an unchanged `pre_fix_ref` (the common case — one clone touches the mirror at least twice, for
+`info/refs` then `git-upload-pack`) never re-touches the network.
+
+**`git http-backend` as a CGI subprocess, not `git daemon`.** Both speak the smart protocol; the
+choice is about what surrounds it. `git daemon` is its own long-lived process with its own
+export-list and access model, orthogonal to HTTP. `git http-backend` is a CGI script, so the exact
+request plumbing phase 3 already built (`segbench.netpol.proxy`'s plain-HTTP handler) fronts it
+directly: the resolve-and-cache step runs as ordinary Python before the CGI subprocess is even
+invoked, so an unresolvable repository gets a clear, human-readable denial instead of an opaque
+404. It also means mirror traffic is proxied through the *same* egress proxy as inference traffic —
+git's HTTP transport honours `http_proxy`/`https_proxy` like any libcurl client — with
+`segbench.netpol.enforce`'s direct `iptables` allow rule for `mirror_host:mirror_port` as the
+defence-in-depth fallback for a client that bypasses the proxy env vars, not the primary path.
+
+**One long-lived mirror listener for the whole campaign, run-scoped state in the URL.** Unlike the
+proxy (a fresh ephemeral listener per run, because per-run cost metering needs unconditional
+attribution), the mirror matches `NetpolConfig.mirror_port`'s single configured port. What varies
+per run is which bug's cutoff applies, registered by `GitMirror.start_run` and threaded through the
+URL path (`/run/<run_id>/target.git`, `/run/<run_id>/other/<host-slug>/<owner>/<repo>.git`) rather
+than through the socket.
+
+**The E2 rewrite is a narrow, explicit host table, not a generic reversible encoding.** `insteadOf`
+rules are generated for a fixed set of known git-hosting hosts (github.com, opendev.org,
+review.opendev.org, code.launchpad.net, git.launchpad.net) plus one exact-match rule for the bug's
+own `repo.url`. Git's own longest-prefix-wins rule for multiple matching `insteadOf` entries is what
+lets the exact target-repo mapping win over the more general host-prefix mapping when both apply.
+Anything outside the table simply has no rewrite rule and falls through to the network deny, which
+is a safe failure, not a gap — confirmed by the leakage suite, which bypasses the rewrite entirely
+(`GIT_CONFIG_NOSYSTEM=1`) against a real, resolvable host and shows the proxy still denies it.
+Rules are installed to `/etc/gitconfig` (`--system`, not `--global`), so they apply regardless of
+which user the agent's git commands run as.
+
+**`git insteadOf` requires a proper URL scheme.** A bare filesystem path is rejected with "fatal:
+invalid URL scheme name or missing '://' suffix" rather than ever being matched against configured
+prefixes — confirmed by hand. Not a concern for real corpus bugs, whose `repo.url` is always an
+`https://` URL, but it means any fixture exercising the E2 rewrite needs a real-looking scheme too
+(`https://*.invalid/...`, RFC 2606, is used in the leakage tests for exactly this).
+
+**Two latent runtime-layer bugs, surfaced by actually pushing a directory and then running git
+against it — the first time either had been exercised for real:**
+
+- `LXDRuntime.push` did not previously handle directories correctly: `lxc file push --recursive SRC
+  TARGET` lands the tree at `TARGET/<basename of SRC>`, never at `TARGET` itself. There is no `lxc`
+  option for "contents only", so `push` now pushes into the parent of `remote` and renames the
+  result into place.
+- git 2.35.2+ refuses to operate on a repository it does not own ("detected dubious ownership")
+  unless told otherwise, and a file pushed via `lxc file push` need not land owned by whichever uid
+  later runs git in it. `seed_e1` marks the seeded path as a system-wide `safe.directory` (same
+  `/etc/gitconfig` mechanism as the E2 rewrite) immediately after pushing, before any verification
+  runs.
+
 ## 6. The run matrix
 
 ```

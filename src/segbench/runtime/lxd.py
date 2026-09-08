@@ -330,13 +330,36 @@ class LXDRuntime:
     def push(
         self, handle: Handle, local: str | os.PathLike[str], remote: str, *, mode: str | None = None
     ) -> None:
-        """Copy a host file or directory into the container, creating parent directories."""
+        """Copy a host file or directory into the container, creating parent directories.
+
+        For a directory, ``lxc file push --recursive SRC TARGET`` lands the tree at
+        ``TARGET/<basename of SRC>``, never at ``TARGET`` itself — confirmed by hand: pushing
+        ``/tmp/x`` recursively to ``container:/workspace/repo`` produces
+        ``/workspace/repo/x/...``, not ``/workspace/repo/...``. There is no ``lxc`` option for
+        "contents only", so this pushes into the parent of ``remote`` and renames the result into
+        place, which needs one recursive transfer (not one push per file) plus a cheap in-container
+        rename.
+        """
         source = Path(local)
         if not source.exists():
             raise RuntimeFailure(f"nothing to push: {source} does not exist")
-        argv = ["file", "push", "--create-dirs"]
+
         if source.is_dir():
-            argv.append("--recursive")
+            remote = remote.rstrip("/") or "/"
+            parent = remote.rsplit("/", 1)[0] or "/"
+            landed = f"{parent}/{source.name}"
+            self.exec(handle, ["mkdir", "-p", parent], check=True)
+            argv = ["file", "push", "--create-dirs", "--recursive"]
+            if mode:
+                argv += ["--mode", mode]
+            argv += [str(source), f"{handle.name}{parent}"]
+            self.run_lxc(*argv, timeout=600.0)
+            if landed != remote:
+                self.exec(handle, ["rm", "-rf", remote], check=True)
+                self.exec(handle, ["mv", landed, remote], check=True)
+            return
+
+        argv = ["file", "push", "--create-dirs"]
         if mode:
             argv += ["--mode", mode]
         argv += [str(source), f"{handle.name}{remote}"]

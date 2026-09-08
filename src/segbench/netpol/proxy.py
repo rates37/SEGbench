@@ -238,6 +238,7 @@ class NetlogWriter:
         allowed: bool,
         leak_attempt: bool = False,
         usage: Mapping[str, object] | None = None,
+        extra: Mapping[str, object] | None = None,
     ) -> None:
         entry: dict[str, object] = {
             "ts": dt.datetime.now(dt.UTC).isoformat(),
@@ -252,6 +253,8 @@ class NetlogWriter:
         }
         if usage is not None:
             entry["usage"] = dict(usage)
+        if extra:
+            entry.update(extra)
         line = json.dumps(entry, default=str)
         with self._lock, self._path.open("a", encoding="utf-8") as fh:
             fh.write(line + "\n")

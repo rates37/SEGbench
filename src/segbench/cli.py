@@ -19,10 +19,11 @@ from segbench.config import Settings, load_settings
 from segbench.corpus.add import AddError, fetch_github, fetch_launchpad, next_steps, scaffold
 from segbench.corpus.derive import DeriveError, derive_fix, write_derived_fix
 from segbench.corpus.findings import Severity
-from segbench.corpus.loader import CorpusError, load_bug
+from segbench.corpus.loader import CorpusError, bug_directories, load_bug
 from segbench.corpus.scrub import ScrubPolicy
 from segbench.corpus.validate import CorpusReport, validate_corpus
 from segbench.logging import configure_logging, get_logger
+from segbench.netpol.gitmirror import MirrorError, mirror_status_for, sync_bug
 from segbench.netpol.policy import build_policies
 from segbench.netpol.verify import VerifyReport, verify_policy
 from segbench.runtime.base import Runtime, RuntimeFailure
@@ -401,9 +402,59 @@ def runtime_smoke(
 
 
 @mirror_app.command("sync")
-def mirror_sync(ctx: typer.Context, bug: Annotated[str, typer.Option(help="Bug id.")]) -> None:
-    """Populate the truncating git mirror for one bug's target repository."""
-    raise _todo(4, "mirror sync")
+def mirror_sync(
+    ctx: typer.Context,
+    bug: Annotated[str, typer.Option(help="Bug id.")],
+    force: Annotated[
+        bool, typer.Option("--force", help="Rebuild even if a cached truncation exists.")
+    ] = False,
+) -> None:
+    """Populate the truncating git mirror for one bug's target repository.
+
+    Fetches the repository (host-side network access only — CLAUDE.md invariant 2), resolves
+    ``repo.pre_fix_ref``, and caches the result as a single rootless commit. Idempotent: a repeat
+    call against an unchanged ``pre_fix_ref`` touches no network at all.
+    """
+    settings = _settings(ctx)
+    directory = settings.paths.corpus / "bugs" / bug
+    try:
+        loaded = load_bug(directory)
+        result = sync_bug(settings.paths.mirror_cache, loaded, force=force)
+    except (CorpusError, MirrorError) as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"bug: {result.bug_id}")
+    console.print(f"repo: {result.repo_url}")
+    console.print(f"pre_fix_ref: {result.pre_fix_ref}")
+    console.print(f"truncated commit: {result.commit}")
+    console.print(f"cached at: {result.path}")
+
+
+@mirror_app.command("status")
+def mirror_status_cmd(ctx: typer.Context) -> None:
+    """Show every bug's target-mirror cache state: cached or not, and the source commit."""
+    settings = _settings(ctx)
+    table = Table(title="git mirror status", title_justify="left")
+    table.add_column("bug")
+    table.add_column("cached")
+    table.add_column("source commit")
+    table.add_column("path")
+
+    for directory in bug_directories(settings.paths.corpus):
+        try:
+            loaded = load_bug(directory)
+        except CorpusError as exc:
+            table.add_row(directory.name, "[red]error[/red]", "-", str(exc))
+            continue
+        status = mirror_status_for(settings.paths.mirror_cache, loaded)
+        table.add_row(
+            status.bug_id,
+            "[green]yes[/green]" if status.cached else "no",
+            (status.source_commit or "-")[:12],
+            str(status.path),
+        )
+    console.print(table)
 
 
 def _print_verify_report(report: VerifyReport) -> None:

@@ -35,18 +35,13 @@ def test_version() -> None:
     assert __version__ in result.stdout
 
 
-@pytest.mark.parametrize(
-    "argv",
-    [
-        ["export"],
-    ],
-)
-def test_stubs_raise_not_implemented(argv: list[str]) -> None:
-    result = runner.invoke(app, argv)
+def test_export_with_no_runs_writes_empty_document(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    out = tmp_path / "data.json"
+    result = runner.invoke(app, ["export", "--out", str(out)])
 
-    assert result.exit_code != 0
-    assert isinstance(result.exception, NotImplementedError)
-    assert "phase" in str(result.exception)
+    assert result.exit_code == 0, result.stdout
+    assert out.is_file()
 
 
 def test_grade_with_no_runs_does_nothing_and_exits_clean(tmp_path) -> None:

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "campaign": {
+    "generated_at": "2026-09-08T13:27:50.366771+00:00",
+    "repeats": 1,
+    "models": [],
+    "environments": [],
+    "judge_model": "deepseek/deepseek-v4-flash",
+    "judge_prompt_version": "v1",
+    "weights": {
+      "diagnosis_weight": 0.5,
+      "localisation_weight": 0.3,
+      "remedy_weight": 0.2,
+      "component_weight": 0.5,
+      "file_f1_weight": 0.3,
+      "symbol_weight": 0.2,
+      "unsupported_specific_penalty": 0.05,
+      "max_penalty": 0.15
+    },
+    "corpus_revision": null
+  },
+  "aggregates": {
+    "models": [],
+    "model_environment": [],
+    "model_deltas": [],
+    "bug_model_scores": [],
+    "bug_difficulty": [],
+    "information_gain": {
+      "pooled": [],
+      "by_environment": {},
+      "by_model": {}
+    },
+    "corpus": {
+      "n_bugs": 0,
+      "n_ready": 0,
+      "products": {},
+      "channel_origin_mix": {}
+    }
+  },
+  "runs": []
+}

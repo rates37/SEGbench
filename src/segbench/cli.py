@@ -23,6 +23,7 @@ from segbench.corpus.findings import Severity
 from segbench.corpus.loader import CorpusError, bug_directories, load_bug
 from segbench.corpus.scrub import ScrubPolicy
 from segbench.corpus.validate import CorpusReport, validate_corpus
+from segbench.export import ExportError, build_export, write_export
 from segbench.grade.runner import GradingSummary, run_grading
 from segbench.grade.validation import ValidationError, compute_agreement, sample_for_hand_grading
 from segbench.logging import configure_logging, get_logger
@@ -877,11 +878,30 @@ def grade_agreement(
 
 
 @export_app.callback(invoke_without_command=True)
-def export_results(ctx: typer.Context) -> None:
+def export_results(
+    ctx: typer.Context,
+    out: Annotated[
+        Path, typer.Option("--out", help="Where to write the dashboard's data.json.")
+    ] = Path("dashboard/public/data.json"),
+    low_confidence_n: Annotated[
+        int,
+        typer.Option(
+            "--low-confidence-n",
+            help="A channel's gain figure is flagged low_confidence below this many bugs.",
+        ),
+    ] = 10,
+) -> None:
     """Aggregate graded runs into the dashboard's data.json."""
     if ctx.invoked_subcommand is not None:
         return
-    raise _todo(8, "export")
+    settings = _settings(ctx)
+    try:
+        document = build_export(settings, low_confidence_n=low_confidence_n)
+    except ExportError as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    write_export(document, out)
+    console.print(f"wrote {len(document.runs)} run(s) to {out}")
 
 
 def main() -> None:

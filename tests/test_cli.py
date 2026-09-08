@@ -38,7 +38,6 @@ def test_version() -> None:
 @pytest.mark.parametrize(
     "argv",
     [
-        ["run"],
         ["export"],
     ],
 )

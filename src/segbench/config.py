@@ -85,6 +85,9 @@ class CapsConfig(BaseModel):
     wall_clock_s: int = Field(default=300, gt=0)
     max_cost_usd: float = Field(default=5.00, gt=0)
     repeats: int = Field(default=1, ge=1)
+    #: Campaign-wide ceiling (plan.md section 6). ``None`` means no campaign-level cap; the
+    #: per-run ``max_cost_usd`` still applies to every individual run either way.
+    max_campaign_cost_usd: float | None = Field(default=None, gt=0)
 
 
 class ScoringConfig(BaseModel):

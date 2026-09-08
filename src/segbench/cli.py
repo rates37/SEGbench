@@ -517,19 +517,10 @@ def netpol_verify(
 
 
 @run_app.callback(invoke_without_command=True)
-def run_matrix(
-    ctx: typer.Context,
-    dry_run: Annotated[
-        bool, typer.Option("--dry-run", help="Print the matrix and cost estimate; execute nothing.")
-    ] = False,
-    bugs: Annotated[str | None, typer.Option(help="Comma-separated bug ids.")] = None,
-    models: Annotated[str | None, typer.Option(help="Comma-separated model ids.")] = None,
-    environments: Annotated[str | None, typer.Option(help="Comma-separated: E0,E1,E2.")] = None,
-) -> None:
-    """Execute the run matrix, or a subset of it."""
-    if ctx.invoked_subcommand is not None:
-        return
-    raise _todo(7, "run")
+def run_matrix(ctx: typer.Context) -> None:
+    """Execute the run matrix, or a subset of it. See ``run campaign`` and ``run once``."""
+    if ctx.invoked_subcommand is None:
+        console.print(ctx.get_help())
 
 
 @run_app.command("once")
@@ -586,6 +577,208 @@ def run_once(
     console.print(f"leak attempts: {record.leak_attempts}")
     console.print(f"results: {record.results_dir}")
     raise typer.Exit(code=0 if record.outcome == "ok" else 1)
+
+
+def _print_matrix(matrix, settings: Settings) -> None:
+    from segbench.orchestrator import estimate_cost
+
+    console.print(
+        f"cells: {matrix.cell_count}   total runs: {matrix.total_runs}   "
+        f"already recorded: {matrix.existing_runs}   pending: {matrix.pending_runs}"
+    )
+    for axis in ("bug", "environment", "channel_set", "model"):
+        breakdown = matrix.breakdown(axis)
+        if not breakdown:
+            continue
+        table = Table(title=f"pending runs by {axis}", title_justify="left")
+        table.add_column(axis)
+        table.add_column("pending", justify="right")
+        for value, count in sorted(breakdown.items()):
+            table.add_row(value, str(count))
+        console.print(table)
+
+    estimate = estimate_cost(settings, matrix)
+    console.print(
+        f"estimated cost for pending runs: ${estimate.low_usd:,.2f} - ${estimate.high_usd:,.2f}"
+    )
+
+
+@run_app.command("campaign")
+def run_campaign_cmd(
+    ctx: typer.Context,
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Print the matrix and cost estimate; execute nothing."),
+    ] = False,
+    bugs: Annotated[str | None, typer.Option("--bugs", help="Comma-separated bug ids.")] = None,
+    products: Annotated[
+        str | None, typer.Option("--products", help="Comma-separated product names.")
+    ] = None,
+    tags: Annotated[
+        str | None, typer.Option("--tags", help="Comma-separated tags (any match).")
+    ] = None,
+    envs: Annotated[str | None, typer.Option("--envs", help="Comma-separated: E0,E1,E2.")] = None,
+    channel_sets: Annotated[
+        str | None,
+        typer.Option("--channel-sets", help="Comma-separated: full, loo:<channel_id>, ..."),
+    ] = None,
+    models: Annotated[str | None, typer.Option("--models", help="Comma-separated model ids.")] = (
+        None
+    ),
+    limit: Annotated[
+        int | None, typer.Option("--limit", help="Cap the number of pending runs.")
+    ] = None,
+    force: Annotated[
+        bool,
+        typer.Option("--force", help="Re-run every cell's repeats, ignoring existing records."),
+    ] = False,
+    concurrency: Annotated[
+        int | None, typer.Option("--concurrency", help="Max concurrent in-flight runs.")
+    ] = None,
+    provision_concurrency: Annotated[
+        int | None,
+        typer.Option("--provision-concurrency", help="Max concurrent container provisions."),
+    ] = None,
+) -> None:
+    """Build the campaign matrix and either print it (``--dry-run``) or execute it.
+
+    Resumption is automatic: a cell with ``repeats`` non-``harness_error`` run records already in
+    ``results/runs.jsonl`` is skipped. ``--force`` re-runs every repeat regardless. ``Ctrl-C``
+    stops submitting new cells, drains whatever is in flight, and leaves a manifest + run records
+    from which re-running the same command resumes exactly the missing work.
+    """
+    from rich.live import Live
+
+    from segbench.orchestrator import (
+        CampaignState,
+        Filters,
+        OrchestratorError,
+        build_matrix,
+        new_campaign_id,
+        run_campaign,
+        write_manifest,
+    )
+
+    settings = _settings(ctx)
+    filters = Filters.from_cli(
+        bugs=bugs,
+        products=products,
+        tags=tags,
+        environments=envs,
+        channel_sets=channel_sets,
+        models=models,
+        limit=limit,
+    )
+
+    try:
+        matrix = build_matrix(settings, filters, force=force)
+    except OrchestratorError as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if dry_run:
+        campaign_id = new_campaign_id()
+        write_manifest(settings, campaign_id, matrix, filters, dry_run=True)
+        console.print(f"[dim]dry run \u2014 manifest: results/campaigns/{campaign_id}.json[/dim]")
+        _print_matrix(matrix, settings)
+        raise typer.Exit(code=0)
+
+    if matrix.pending_runs == 0:
+        console.print("nothing to do: every matching cell already has its repeats recorded")
+        raise typer.Exit(code=0)
+
+    def _status_table(state: CampaignState) -> Table:
+        table = Table(title="campaign progress", title_justify="left")
+        table.add_column("completed", justify="right")
+        table.add_column("failed", justify="right")
+        table.add_column("running", justify="right")
+        table.add_column("pending", justify="right")
+        table.add_column("cost (USD)", justify="right")
+        done = state.completed + state.failed
+        table.add_row(
+            str(state.completed),
+            str(state.failed),
+            str(state.running),
+            str(max(0, matrix.pending_runs - done - state.running)),
+            f"${state.cost_usd:,.2f}",
+        )
+        return table
+
+    try:
+        with Live(_status_table(CampaignState()), console=console, refresh_per_second=2) as live:
+            campaign_id, state = run_campaign(
+                settings,
+                filters,
+                force=force,
+                concurrency=concurrency,
+                provision_concurrency=provision_concurrency,
+                on_update=lambda s: live.update(_status_table(s)),
+            )
+    except OrchestratorError as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"campaign: {campaign_id}")
+    console.print(
+        f"completed: {state.completed}  failed: {state.failed}  cost: ${state.cost_usd:,.2f}"
+    )
+    if state.stopping:
+        console.print(
+            "[yellow]stopped early[/yellow] — cost ceiling or interrupt; re-run the same "
+            "command to resume"
+        )
+
+
+@run_app.command("status")
+def run_status(
+    ctx: typer.Context,
+    campaign: Annotated[
+        str | None,
+        typer.Option("--campaign", help="Campaign id; default is the most recently started one."),
+    ] = None,
+) -> None:
+    """Show a campaign's manifest summary and its current matrix state."""
+    from segbench.orchestrator import Filters, OrchestratorError, build_matrix, latest_campaign_id
+    from segbench.orchestrator import read_manifest as _read_manifest
+
+    settings = _settings(ctx)
+    campaign_id = campaign or latest_campaign_id(settings)
+    if campaign_id is None:
+        console.print("no campaigns recorded yet under results/campaigns/")
+        raise typer.Exit(code=1)
+
+    try:
+        manifest = _read_manifest(settings, campaign_id)
+    except OrchestratorError as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"campaign: {manifest['campaign_id']}  created: {manifest['created_at']}")
+    console.print(f"corpus revision: {manifest.get('corpus_revision') or '-'}")
+    filters_used = manifest.get("filters", {})
+    active_filters = {k: v for k, v in filters_used.items() if v is not None}
+    console.print(f"filters: {active_filters or '(none)'}")
+
+    filters = Filters(
+        bugs=tuple(filters_used["bugs"]) if filters_used.get("bugs") else None,
+        products=tuple(filters_used["products"]) if filters_used.get("products") else None,
+        tags=tuple(filters_used["tags"]) if filters_used.get("tags") else None,
+        environments=(
+            tuple(filters_used["environments"]) if filters_used.get("environments") else None
+        ),
+        channel_sets=(
+            tuple(filters_used["channel_sets"]) if filters_used.get("channel_sets") else None
+        ),
+        models=tuple(filters_used["models"]) if filters_used.get("models") else None,
+        limit=filters_used.get("limit"),
+    )
+    try:
+        current = build_matrix(settings, filters)
+    except OrchestratorError as exc:
+        console.print(f"[yellow]warning:[/yellow] could not recompute current state: {exc}")
+        raise typer.Exit(code=0) from None
+
+    _print_matrix(current, settings)
 
 
 def _print_grading_summary(summary: GradingSummary) -> None:

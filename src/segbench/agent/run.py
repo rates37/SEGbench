@@ -228,9 +228,16 @@ def execute_run(
     environment: str,
     channel_set: str,
     model: ModelConfig,
+    provision_semaphore: contextlib.AbstractContextManager[object] | None = None,
 ) -> RunRecord:
     """Execute one run end to end and return its record. Also appends the record to
-    ``results/runs.jsonl``."""
+    ``results/runs.jsonl``.
+
+    ``provision_semaphore``, if given, is held only around container creation — the orchestrator
+    (phase 7) uses this to cap concurrent container provisioning independently of overall run
+    concurrency, since a slow LXD/podman daemon is a different bottleneck than in-flight agent
+    invocations.
+    """
     if environment not in ENVIRONMENTS:
         raise RunError(f"unknown environment {environment!r}; expected one of {ENVIRONMENTS}")
     channels = resolve_channel_set(bug, channel_set)
@@ -288,7 +295,8 @@ def execute_run(
             wait_for_network=True,
             ready_timeout_s=settings.runtime.ready_timeout_s,
         )
-        handle = runtime.create(spec)
+        with provision_semaphore or contextlib.nullcontext():
+            handle = runtime.create(spec)
         enforce.apply(
             runtime,
             handle,

@@ -1,0 +1,12 @@
+{
+  "sample_id": "sample-000",
+  "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+  "also_acceptable_root_causes": [
+    "domain_backend_changed() (or create_or_show_domain()) queries Keystone's local admin API\nwithout checking whether the unit is paused, so any hook path that reaches it while the unit\nis paused for an upgrade fails with a connection-refused error against the (intentionally)\ndown local API."
+  ],
+  "agent_root_cause": "The post-upgrade hook tries to reach the Keystone admin API, which is intentionally not running while the unit is paused. This causes the `openstack-upgrade` action to fail when the unit is paused.",
+  "agent_proposed_fix": "Modify the post-upgrade hook to check if the unit is paused before attempting to reach the Keystone admin API. If the unit is paused, skip the domain-backend update and mark it as pending for when the unit resumes.",
+  "human_root_cause_score": null,
+  "human_fix_score": null,
+  "human_notes": ""
+}

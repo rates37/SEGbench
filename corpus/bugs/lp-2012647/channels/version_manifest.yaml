@@ -1,0 +1,4 @@
+charm: charm-keystone
+channel/track: not stated by the reporter
+model config: action-managed-upgrade=true
+related deployment: a domain-backend relation is present (e.g. keystone-ldap)

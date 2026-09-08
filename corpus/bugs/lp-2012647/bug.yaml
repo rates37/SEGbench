@@ -1,0 +1,39 @@
+id: lp-2012647
+title: openstack-upgrade action fails on a paused keystone unit that has a domain-backend relation
+product: charmed-openstack
+source:
+  tracker: launchpad
+  url: https://bugs.launchpad.net/bugs/2012647
+  reported_at: 2023-03-23T15:29:42+00:00
+repo:
+  url: https://opendev.org/openstack/charm-keystone
+  pre_fix_ref: bcd5e540c91c912607c9802b60bfb340cd25cf7a
+  build_setup: null
+difficulty_hint: medium
+tags: [charms, keystone, upgrade, ha, smoke]
+channels:
+  - id: customer_report
+    file: channels/customer_report.md
+    origin: verbatim
+  - id: error_trace
+    file: channels/error_trace.txt
+    origin: verbatim
+  - id: reproduction_steps
+    file: channels/reproduction_steps.md
+    origin: verbatim
+  - id: engineer_notes
+    file: channels/engineer_notes.md
+    origin: paraphrased
+  - id: version_manifest
+    file: channels/version_manifest.yaml
+    origin: paraphrased
+notes: |
+  Smoke-tagged. Real Launchpad bug, real fix commit; the reporter's own report happened to include
+  a "[Root Cause / Proposed Fix]" section naming the exact cause, which was excluded from every
+  channel and folded into ground_truth.root_cause instead (plan.md sec 3.4 first rule). Comment 1
+  (marton-kiss) is triage-stage observation (which port serves the failing connection, and that
+  resuming both units around the affected hook lets it complete) and became engineer_notes, with
+  the review/commit links in later comments stripped. deployment_config and service_logs channels
+  are not present for this bug: the LP report never included a `juju status`/bundle or ambient log
+  excerpt beyond the traceback, and no channel should be synthesised where the reporter didn't
+  provide one.

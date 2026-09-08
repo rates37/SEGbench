@@ -43,6 +43,7 @@ from segbench.corpus.loader import load_corpus
 from segbench.corpus.models import Bug
 from segbench.grade.score import read_run_records
 from segbench.logging import get_logger
+from segbench.netpol.gitmirror import GitMirror
 from segbench.occlusion import channel_sets_for
 from segbench.runtime.images import ImageBuilder
 
@@ -455,6 +456,14 @@ def run_campaign(
     state = CampaignState()
     lock = threading.Lock()
 
+    # One mirror listener for the whole campaign (plan.md sec 5.3), not one per E2 run: several E2
+    # runs can be in flight at once under --concurrency, and each has its own GitMirror trying to
+    # bind the same configured port otherwise.
+    needs_mirror = any(cell.pending > 0 and cell.key.environment == "E2" for cell in matrix.cells)
+    mirror = GitMirror(settings) if needs_mirror else None
+    if mirror is not None:
+        mirror.start()
+
     def work_items() -> Iterator[CellKey]:
         for cell in matrix.cells:
             for _ in range(cell.pending):
@@ -468,6 +477,7 @@ def run_campaign(
             channel_set=key.channel_set,
             model=models_by_id[key.model],
             provision_semaphore=provision_semaphore,
+            mirror=mirror,
         )
         with lock:
             state.running -= 1
@@ -480,36 +490,40 @@ def run_campaign(
                 on_update(state)
 
     items = work_items()
-    with ThreadPoolExecutor(max_workers=concurrency) as pool:
-        in_flight: set[Future] = set()
-        try:
-            while True:
-                if state.stopping:
-                    break
-                if ceiling is not None and state.cost_usd >= ceiling:
-                    log.warning(
-                        "campaign cost ceiling reached; not starting further cells",
-                        extra={"cost_usd": state.cost_usd, "ceiling": ceiling},
-                    )
-                    state.stopping = True
-                    break
-                while len(in_flight) < concurrency:
-                    key = next(items, None)
-                    if key is None:
+    try:
+        with ThreadPoolExecutor(max_workers=concurrency) as pool:
+            in_flight: set[Future] = set()
+            try:
+                while True:
+                    if state.stopping:
                         break
-                    with lock:
-                        state.running += 1
-                        if on_update:
-                            on_update(state)
-                    in_flight.add(pool.submit(run_one, key))
-                if not in_flight:
-                    break
-                done, in_flight = wait(in_flight, return_when=FIRST_COMPLETED)
-                for future in done:
-                    future.result()  # re-raise a bug in run_one itself; run_one swallows the rest
-        except KeyboardInterrupt:
-            log.warning("SIGINT: draining in-flight runs, submitting nothing further")
-            state.stopping = True
-            wait(in_flight)
+                    if ceiling is not None and state.cost_usd >= ceiling:
+                        log.warning(
+                            "campaign cost ceiling reached; not starting further cells",
+                            extra={"cost_usd": state.cost_usd, "ceiling": ceiling},
+                        )
+                        state.stopping = True
+                        break
+                    while len(in_flight) < concurrency:
+                        key = next(items, None)
+                        if key is None:
+                            break
+                        with lock:
+                            state.running += 1
+                            if on_update:
+                                on_update(state)
+                        in_flight.add(pool.submit(run_one, key))
+                    if not in_flight:
+                        break
+                    done, in_flight = wait(in_flight, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        future.result()  # re-raise a bug in run_one; run_one swallows the rest
+            except KeyboardInterrupt:
+                log.warning("SIGINT: draining in-flight runs, submitting nothing further")
+                state.stopping = True
+                wait(in_flight)
+    finally:
+        if mirror is not None:
+            mirror.stop()
 
     return campaign_id, state

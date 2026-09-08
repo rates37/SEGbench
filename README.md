@@ -74,6 +74,46 @@ segbench corpus add --launchpad 2048221   # scaffold a bug directory from a trac
 segbench corpus derive --bug <id> --repo <path>
 ```
 
+See [docs/adding-bugs.md](docs/adding-bugs.md) for the full supervised workflow, including the
+channel-splitting rules with worked good/bad examples.
+
+## Quickstart: run a campaign and view the dashboard
+
+```bash
+export OPENROUTER_API_KEY=...
+segbench netpol verify                          # prove the no-leakage invariant against a real container
+segbench run campaign --tags smoke --dry-run     # see the matrix and a cost estimate first
+segbench run campaign --tags smoke               # execute it
+segbench grade                                   # deterministic checks + LLM judge
+segbench export                                  # writes dashboard/public/data.json
+cd dashboard && npm install && npm run build && npm run preview
+```
+
+Open the printed preview URL to see the leaderboard, model×environment heatmap, information-gain
+chart, bug×model matrix, failure-mode breakdown, cost/score frontier, and a drillable run table —
+all rendered from `data.json`, no server or database involved.
+
+![segbench dashboard — overview/leaderboard view, rendered from a real end-to-end smoke campaign](docs/dashboard-screenshot.png)
+
+*Screenshot from the smoke campaign described in [docs/operations.md](docs/operations.md) — one
+real Launchpad bug, three environments, two models. `n=1` bug; this is a pipeline demonstration, not
+a capability result. See [docs/methodology.md](docs/methodology.md) for what the benchmark measures
+and its current limitations, and [docs/operations.md](docs/operations.md) for running a full
+campaign, budget planning, resumption, and troubleshooting.*
+
+## Documentation
+
+- [plan.md](plan.md) — the full design document; source of truth.
+- [docs/methodology.md](docs/methodology.md) — what's measured, environments, leakage prevention
+  (with real `netpol verify` output), scoring rubric, occlusion design, and an honest limitations
+  section.
+- [docs/adding-bugs.md](docs/adding-bugs.md) — the supervised workflow for turning a tracker bug
+  into a corpus entry.
+- [docs/operations.md](docs/operations.md) — running a campaign, budget planning, resumption,
+  troubleshooting, recommended staging, and measured smoke-campaign numbers.
+- [docs/judge-validation.md](docs/judge-validation.md) — the judge hand-grading/agreement process.
+- [docs/todo.md](docs/todo.md) — deferred work (plan.md §12), tracked so it stays visible.
+
 ## Development
 
 ```bash

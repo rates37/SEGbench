@@ -229,6 +229,7 @@ def execute_run(
     channel_set: str,
     model: ModelConfig,
     provision_semaphore: contextlib.AbstractContextManager[object] | None = None,
+    mirror: GitMirror | None = None,
 ) -> RunRecord:
     """Execute one run end to end and return its record. Also appends the record to
     ``results/runs.jsonl``.
@@ -237,6 +238,13 @@ def execute_run(
     (phase 7) uses this to cap concurrent container provisioning independently of overall run
     concurrency, since a slow LXD/podman daemon is a different bottleneck than in-flight agent
     invocations.
+
+    ``mirror``, if given, is a campaign-wide :class:`GitMirror` the orchestrator already started —
+    E2 runs register against it and this function never starts or stops it. Plan.md sec 5.3 is
+    explicit that there is one long-lived mirror listener per campaign, not one per run: a caller
+    that leaves this ``None`` (e.g. ``segbench run once``) gets a private mirror instead, started
+    and stopped around this single run, which only works when at most one E2 run is ever in flight
+    at a time in that process.
     """
     if environment not in ENVIRONMENTS:
         raise RunError(f"unknown environment {environment!r}; expected one of {ENVIRONMENTS}")
@@ -265,8 +273,8 @@ def execute_run(
     proxy_run = proxy.start_run(
         run_id, policy, netlog_path=netlog_path, max_cost_usd=settings.caps.max_cost_usd
     )
-    mirror: GitMirror | None = None
-    if environment == "E2":
+    owns_mirror = mirror is None
+    if environment == "E2" and mirror is None:
         mirror = GitMirror(settings)
         mirror.start()
 
@@ -391,7 +399,8 @@ def execute_run(
         proxy.shutdown()
         if mirror is not None:
             mirror.stop_run(run_id)
-            mirror.stop()
+            if owns_mirror:
+                mirror.stop()
 
     ended_at = dt.datetime.now(dt.UTC)
 

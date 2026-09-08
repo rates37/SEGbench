@@ -1,5 +1,6 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useDashboard } from '../lib/dashboardCtx';
+import { HelpButton } from '../components/HelpButton';
 
 const OUTCOME_COLORS: Record<string, string> = {
   ok: 'var(--color-positive)',
@@ -33,7 +34,15 @@ export function FailureModesView() {
 
   return (
     <div className="p-4">
-      <h2 className="mb-1 text-lg font-semibold">Failure-mode breakdown</h2>
+      <h2 className="mb-1 text-lg font-semibold">
+        Failure-mode breakdown
+        <HelpButton>
+          Stacked bars: for each model, what fraction of its runs landed in each outcome (ok,
+          timeout, no answer, invalid answer, cost exceeded). A model can score well on average but
+          fail in a specific, informative way — e.g. never timing out but frequently producing no
+          answer at all.
+        </HelpButton>
+      </h2>
       <p className="mb-3 text-xs text-[var(--color-text-muted)]">
         Outcome rate by model (stacked to 100%), plus the unsupported-specifics (hallucination)
         rate below.

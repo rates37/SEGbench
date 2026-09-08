@@ -1,15 +1,18 @@
 import { useDashboard } from '../lib/dashboardCtx';
+import { environmentTitle } from '../lib/environments';
 
 function Select({
   label,
   value,
   options,
   onChange,
+  optionTitle,
 }: {
   label: string;
   value: string | null;
   options: string[];
   onChange: (v: string | null) => void;
+  optionTitle?: (o: string) => string | undefined;
 }) {
   return (
     <label className="flex items-center gap-1.5 text-sm">
@@ -21,7 +24,7 @@ function Select({
       >
         <option value="">all</option>
         {options.map((o) => (
-          <option key={o} value={o}>
+          <option key={o} value={o} title={optionTitle?.(o)}>
             {o}
           </option>
         ))}
@@ -51,6 +54,7 @@ export function FilterBar() {
         value={filters.environment}
         options={doc.campaign.environments}
         onChange={(v) => setFilter({ environment: v })}
+        optionTitle={environmentTitle}
       />
       <Select
         label="product"

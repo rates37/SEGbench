@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDashboard } from '../lib/dashboardCtx';
+import { HelpButton } from '../components/HelpButton';
 import { SpreadStat } from '../components/SpreadStat';
 import { formatPct, formatUsd, formatSeconds } from '../lib/format';
 import type { ModelAggregate } from '../lib/types';
@@ -47,7 +48,15 @@ export function OverviewView() {
 
   return (
     <div className="p-4">
-      <h2 className="mb-3 text-lg font-semibold">Overview / leaderboard</h2>
+      <h2 className="mb-3 text-lg font-semibold">
+        Overview / leaderboard
+        <HelpButton>
+          One row per model, ranked by composite score (the weighted blend of diagnosis,
+          localisation and remedy — see the three sub-columns). This is the "who's ahead" view,
+          but with `repeats = 1` treat the ranking as a hypothesis, not a result — see the banner
+          above. Sort any column by clicking its header.
+        </HelpButton>
+      </h2>
       <div className="overflow-x-auto rounded border border-[var(--color-border)] bg-[var(--color-surface)]">
         <table className="w-full text-sm">
           <thead className="border-b border-[var(--color-border)] bg-[var(--color-bg)]">

@@ -129,18 +129,22 @@ attempts (one `harness_error` retried automatically by resumption).
 | sum of individual run durations (`duration_s`, concurrency 3) | 569.6s |
 | per-run duration range | 29.5s – 168.2s |
 | total tokens metered | 154,134 prompt + 1,891 completion |
-| metered cost reported | $0.00 (see caveat) |
+| metered cost reported | $0.00 at the time (see cost-fix note below) |
 | `segbench grade` | 7 graded, 0 failed |
 | `segbench export` → `segbench.toml` [scoring] weights → `dashboard/public/data.json` | built and rendered; see screenshot in [README.md](../README.md) |
 
-**Cost caveat:** `[netpol.pricing]` was left empty in the `segbench.toml` used for this run (the
-example config ships it empty by design — plan.md never assumes prices), so the proxy's cost meter
-reported `$0.00`/`estimated: false` for every run rather than an actual dollar figure. The *token*
-counts above are real and metered directly from provider responses; convert them at your own
-provider's list price for a real dollar estimate (at typical OpenRouter list pricing for these two
-models this smoke campaign cost low-single-digit cents). Fill in `[netpol.pricing."<model id>"]`
-before relying on the dashboard's `mean_cost_usd` for anything beyond a demonstration that the field
-is wired up.
+**Cost fix (found after this run):** `[netpol.pricing]` was left empty in `segbench.toml` (the
+example config ships it empty by design — plan.md never assumes prices), so the proxy's own cost
+meter reported `$0.00` for this run rather than an actual dollar figure. `opencode` itself, however,
+already computes a real, provider-accounted dollar cost per session (`session.json`'s `info.cost`),
+so `execute_run` now reads that value and uses it as the authoritative `cost.usd` whenever a session
+was captured, falling back to the proxy meter (still gated on `[netpol.pricing]`) only when it
+wasn't. The run records above were backfilled from their already-saved `session.json` files once
+this was found — the dashboard's cost figures reflect real spend, not token counts converted by
+hand. A follow-up campaign against three more models (`deepseek/deepseek-v4-flash-0731`,
+`qwen/qwen3.8-flash`, `google/gemini-3.8-flash`, 9 more runs, all `channel_sets=full`) confirmed real
+non-zero costs now appear directly in `dashboard/public/data.json` without any manual
+pricing-table maintenance.
 
 **What this smoke run is (and isn't) evidence of:** it is evidence the full pipeline — corpus
 loading → container provisioning → network enforcement → agent invocation → transcript/answer

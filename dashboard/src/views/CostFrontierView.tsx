@@ -1,5 +1,6 @@
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
 import { useDashboard } from '../lib/dashboardCtx';
+import { HelpButton } from '../components/HelpButton';
 import type { ModelAggregate } from '../lib/types';
 
 /** Mean cost against mean score against a Pareto front — the practical procurement question is
@@ -34,7 +35,15 @@ export function CostFrontierView() {
 
   return (
     <div className="p-4">
-      <h2 className="mb-1 text-lg font-semibold">Cost / score frontier</h2>
+      <h2 className="mb-1 text-lg font-semibold">
+        Cost / score frontier
+        <HelpButton>
+          One point per model: mean $ cost per run (x-axis) against mean composite score
+          (y-axis). Points near the top-left are cheap and good; the highlighted models are the
+          Pareto front — no other model is both cheaper and better. This is the "which model is
+          worth running" view, not "which model is best".
+        </HelpButton>
+      </h2>
       <p className="mb-3 text-xs text-[var(--color-text-muted)]">
         Filled points sit on the Pareto front (no other model is both cheaper and better).
       </p>

@@ -1,11 +1,14 @@
 {
   "schema_version": 1,
   "campaign": {
-    "generated_at": "2026-09-08T14:57:36.356821+00:00",
+    "generated_at": "2026-09-08T15:44:21.666076+00:00",
     "repeats": 1,
     "models": [
       "deepseek/deepseek-chat",
-      "qwen/qwen-2.5-coder-32b-instruct"
+      "qwen/qwen-2.5-coder-32b-instruct",
+      "deepseek/deepseek-v4-flash-0731",
+      "qwen/qwen3.8-flash",
+      "google/gemini-3.8-flash"
     ],
     "environments": [
       "E0",
@@ -75,7 +78,7 @@
           "repeats": 1,
           "ci95": null
         },
-        "mean_cost_usd": 0.0,
+        "mean_cost_usd": 0.014986353333333334,
         "mean_latency_s": 135.00003833333332,
         "outcomes": {
           "counts": {
@@ -85,6 +88,130 @@
           "rates": {
             "ok": 0.6666666666666666,
             "no_answer": 0.3333333333333333
+          },
+          "n_total": 3
+        },
+        "unsupported_specifics_rate": 0.0,
+        "leak_attempt_rate": 1.0
+      },
+      {
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "n_runs": 3,
+        "composite": {
+          "n": 3,
+          "mean": 0.5985714285714285,
+          "values": [
+            0.9357142857142857,
+            0.8599999999999999,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "diagnosis": {
+          "n": 3,
+          "mean": 0.6666666666666666,
+          "values": [
+            1.0,
+            1.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "localisation": {
+          "n": 3,
+          "mean": 0.49523809523809526,
+          "values": [
+            0.7857142857142858,
+            0.7,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "remedy": {
+          "n": 3,
+          "mean": 0.6666666666666666,
+          "values": [
+            1.0,
+            1.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "mean_cost_usd": 0.004833063,
+        "mean_latency_s": 295.4622586666666,
+        "outcomes": {
+          "counts": {
+            "ok": 2,
+            "timeout": 1
+          },
+          "rates": {
+            "ok": 0.6666666666666666,
+            "timeout": 0.3333333333333333
+          },
+          "n_total": 3
+        },
+        "unsupported_specifics_rate": 0.5,
+        "leak_attempt_rate": 1.0
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "n_runs": 3,
+        "composite": {
+          "n": 3,
+          "mean": 0.9405714285714285,
+          "values": [
+            0.94,
+            0.946,
+            0.9357142857142857
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "diagnosis": {
+          "n": 3,
+          "mean": 1.0,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "localisation": {
+          "n": 3,
+          "mean": 0.8019047619047619,
+          "values": [
+            0.8,
+            0.8200000000000001,
+            0.7857142857142858
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "remedy": {
+          "n": 3,
+          "mean": 1.0,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "mean_cost_usd": 0.096182975,
+        "mean_latency_s": 368.639629,
+        "outcomes": {
+          "counts": {
+            "ok": 3
+          },
+          "rates": {
+            "ok": 1.0
           },
           "n_total": 3
         },
@@ -153,6 +280,67 @@
         },
         "unsupported_specifics_rate": 0.0,
         "leak_attempt_rate": 0.75
+      },
+      {
+        "model": "qwen/qwen3.8-flash",
+        "n_runs": 3,
+        "composite": {
+          "n": 3,
+          "mean": 0.0,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "diagnosis": {
+          "n": 3,
+          "mean": 0.0,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "localisation": {
+          "n": 3,
+          "mean": 0.0,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "remedy": {
+          "n": 3,
+          "mean": 0.0,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "mean_cost_usd": 0.0,
+        "mean_latency_s": 38.06531533333333,
+        "outcomes": {
+          "counts": {
+            "no_answer": 3
+          },
+          "rates": {
+            "no_answer": 1.0
+          },
+          "n_total": 3
+        },
+        "unsupported_specifics_rate": 0.0,
+        "leak_attempt_rate": 1.0
       }
     ],
     "model_environment": [
@@ -192,6 +380,90 @@
           "mean": 0.7833333333333333,
           "values": [
             0.7833333333333333
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "environment": "E0",
+        "composite": {
+          "n": 1,
+          "mean": 0.8599999999999999,
+          "values": [
+            0.8599999999999999
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "environment": "E1",
+        "composite": {
+          "n": 1,
+          "mean": 0.9357142857142857,
+          "values": [
+            0.9357142857142857
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "environment": "E2",
+        "composite": {
+          "n": 1,
+          "mean": 0.0,
+          "values": [
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "environment": "E0",
+        "composite": {
+          "n": 1,
+          "mean": 0.94,
+          "values": [
+            0.94
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "environment": "E1",
+        "composite": {
+          "n": 1,
+          "mean": 0.946,
+          "values": [
+            0.946
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "environment": "E2",
+        "composite": {
+          "n": 1,
+          "mean": 0.9357142857142857,
+          "values": [
+            0.9357142857142857
           ],
           "repeats": 1,
           "ci95": null
@@ -239,6 +511,48 @@
           "ci95": null
         },
         "n_runs": 2
+      },
+      {
+        "model": "qwen/qwen3.8-flash",
+        "environment": "E0",
+        "composite": {
+          "n": 1,
+          "mean": 0.0,
+          "values": [
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "qwen/qwen3.8-flash",
+        "environment": "E1",
+        "composite": {
+          "n": 1,
+          "mean": 0.0,
+          "values": [
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
+      },
+      {
+        "model": "qwen/qwen3.8-flash",
+        "environment": "E2",
+        "composite": {
+          "n": 1,
+          "mean": 0.0,
+          "values": [
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        },
+        "n_runs": 1
       }
     ],
     "model_deltas": [
@@ -248,7 +562,22 @@
         "e2_minus_e1": 0.7833333333333333
       },
       {
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "e1_minus_e0": 0.07571428571428584,
+        "e2_minus_e1": -0.9357142857142857
+      },
+      {
+        "model": "google/gemini-3.8-flash",
+        "e1_minus_e0": 0.006000000000000005,
+        "e2_minus_e1": -0.010285714285714231
+      },
+      {
         "model": "qwen/qwen-2.5-coder-32b-instruct",
+        "e1_minus_e0": 0.0,
+        "e2_minus_e1": 0.0
+      },
+      {
+        "model": "qwen/qwen3.8-flash",
         "e1_minus_e0": 0.0,
         "e2_minus_e1": 0.0
       }
@@ -271,7 +600,52 @@
       },
       {
         "bug_id": "lp-2012647",
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "score": {
+          "n": 3,
+          "mean": 0.5985714285714285,
+          "values": [
+            0.9357142857142857,
+            0.8599999999999999,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        }
+      },
+      {
+        "bug_id": "lp-2012647",
+        "model": "google/gemini-3.8-flash",
+        "score": {
+          "n": 3,
+          "mean": 0.9405714285714285,
+          "values": [
+            0.94,
+            0.946,
+            0.9357142857142857
+          ],
+          "repeats": 1,
+          "ci95": null
+        }
+      },
+      {
+        "bug_id": "lp-2012647",
         "model": "qwen/qwen-2.5-coder-32b-instruct",
+        "score": {
+          "n": 3,
+          "mean": 0.0,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "repeats": 1,
+          "ci95": null
+        }
+      },
+      {
+        "bug_id": "lp-2012647",
+        "model": "qwen/qwen3.8-flash",
         "score": {
           "n": 3,
           "mean": 0.0,
@@ -288,8 +662,8 @@
     "bug_difficulty": [
       {
         "bug_id": "lp-2012647",
-        "mean_score": 0.24333333333333332,
-        "n_models": 2
+        "mean_score": 0.4051619047619047,
+        "n_models": 5
       }
     ],
     "information_gain": {
@@ -556,7 +930,163 @@
             "ci95": null
           }
         ],
+        "deepseek/deepseek-v4-flash-0731": [
+          {
+            "channel": "customer_report",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "engineer_notes",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "error_trace",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "reproduction_steps",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "version_manifest",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          }
+        ],
+        "google/gemini-3.8-flash": [
+          {
+            "channel": "customer_report",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "engineer_notes",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "error_trace",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "reproduction_steps",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "version_manifest",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          }
+        ],
         "qwen/qwen-2.5-coder-32b-instruct": [
+          {
+            "channel": "customer_report",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "engineer_notes",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "error_trace",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "reproduction_steps",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          },
+          {
+            "channel": "version_manifest",
+            "n": 0,
+            "mean": 0.0,
+            "per_bug": {},
+            "low_confidence": true,
+            "origin_counts": {},
+            "repeats": 1,
+            "ci95": null
+          }
+        ],
+        "qwen/qwen3.8-flash": [
           {
             "channel": "customer_report",
             "n": 0,
@@ -748,7 +1278,7 @@
       "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
       "unsupported_specifics": 0,
       "contradicts_ground_truth": false,
-      "cost_usd": 0.0,
+      "cost_usd": 0.00707021,
       "duration_s": 100.703918,
       "leak_attempts": 1,
       "netlog": {
@@ -781,7 +1311,7 @@
       "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
       "unsupported_specifics": null,
       "contradicts_ground_truth": null,
-      "cost_usd": 0.0,
+      "cost_usd": 0.02709924,
       "duration_s": 168.155081,
       "leak_attempts": 1,
       "netlog": {
@@ -814,7 +1344,7 @@
       "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
       "unsupported_specifics": 0,
       "contradicts_ground_truth": false,
-      "cost_usd": 0.0,
+      "cost_usd": 0.01078961,
       "duration_s": 136.141116,
       "leak_attempts": 1,
       "netlog": {
@@ -890,6 +1420,303 @@
         "leak_attempts": 1
       },
       "transcript_path": "results/runs/lp-2012647-e2-qwen-qwen-2-5-coder-32b-instruct-569b03ae/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e0-qwen-qwen3-8-flash-9ef241b2",
+      "bug_id": "lp-2012647",
+      "environment": "E0",
+      "channel_set": "full",
+      "model": "qwen/qwen3.8-flash",
+      "outcome": "no_answer",
+      "score": 0.0,
+      "diagnosis": 0.0,
+      "localisation": 0.0,
+      "remedy": 0.0,
+      "component_match": null,
+      "file_hit": null,
+      "file_f1": null,
+      "symbol_hit": null,
+      "root_cause": null,
+      "proposed_fix": null,
+      "root_cause_rationale": null,
+      "fix_rationale": null,
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": null,
+      "contradicts_ground_truth": null,
+      "cost_usd": 0.0,
+      "duration_s": 36.908938,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 6,
+        "allowed": 2,
+        "denied": 4,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e0-qwen-qwen3-8-flash-9ef241b2/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e1-deepseek-deepseek-v4-flash-0731-caa01b93",
+      "bug_id": "lp-2012647",
+      "environment": "E1",
+      "channel_set": "full",
+      "model": "deepseek/deepseek-v4-flash-0731",
+      "outcome": "ok",
+      "score": 0.9357142857142857,
+      "diagnosis": 1.0,
+      "localisation": 0.7857142857142858,
+      "remedy": 1.0,
+      "component_match": true,
+      "file_hit": true,
+      "file_f1": 0.28571428571428575,
+      "symbol_hit": true,
+      "root_cause": "The openstack-upgrade action, after installing packages, re-execs the config-changed-postupgrade hook (actions/openstack_upgrade.py os.execl). Unlike config_changed(), which short-circuits on is_unit_paused_set(), config_changed_postupgrade() runs update_all_domain_backends() unconditionally (hooks/keystone_hooks.py:303). update_all_domain_backends() has no readiness guard, unlike update_all_identity_relation_units(), which defers via check_api_application_ready() when the unit is paused. The guard matters because domain_backend_changed() calls create_or_show_domain() (hooks/keystone_hooks.py:676), which resolves the domain through the local Keystone admin API served by the apache2 WSGI daemon on localhost:35347 (wsgi-openstack-api.conf); that daemon is intentionally stopped while the unit is paused, so the request is refused and the hook raises RuntimeError, failing the action. So the documented paused-upgrade procedure is buggy only in the presence of a domain-backend relation: the code path that re-triggers domain-backend processing does not honour the paused state the way the rest of the charm does.",
+      "proposed_fix": "Make the domain-backend update path pause-aware, mirroring update_all_identity_relation_units(). The simplest fix is to add the same unit-readiness guard to update_all_domain_backends(): skip firing domain_backend_changed() when the local API is not ready (e.g. wrap the loop in a check_api_application_ready() check, or bail when is_unit_paused_set()), since the resume path re-runs the full config-changed-postupgrade / config-changed processing and will pick the work back up. Optionally, also gate the create_or_show_domain() call inside domain_backend_changed() on not is_unit_paused_set() (alongside the existing is_leader()/is_db_ready()/is_db_initialised() guards) so the domain is never created via a dead local API; update_all_fid_backends() may deserve the same treatment for consistency. No other change is needed: the package install and remaining post-upgrade work are already pause-safe, and deferring domain-backend re-triggering to resume is consistent with how identity-relation updates are already deferred.",
+      "root_cause_rationale": "The agent's root cause correctly identifies that domain_backend_changed() (called via update_all_domain_backends() in config-changed-postupgrade) lacks a pause-state guard, causing a failure when the local Keystone API is down during a paused upgrade. This matches the ground truth and acceptable framing exactly.",
+      "fix_rationale": "The proposed fix—adding a pause-awareness guard (e.g., is_unit_paused_set() or check_api_application_ready()) to skip domain-backend processing when the unit is paused—addresses the root cause directly and is consistent with how other parts of the charm handle the paused state. It is substantively the correct fix.",
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": 0,
+      "contradicts_ground_truth": false,
+      "cost_usd": 0.005350728000000001,
+      "duration_s": 180.651965,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 14,
+        "allowed": 11,
+        "denied": 3,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e1-deepseek-deepseek-v4-flash-0731-caa01b93/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e1-qwen-qwen3-8-flash-ed13e8e5",
+      "bug_id": "lp-2012647",
+      "environment": "E1",
+      "channel_set": "full",
+      "model": "qwen/qwen3.8-flash",
+      "outcome": "no_answer",
+      "score": 0.0,
+      "diagnosis": 0.0,
+      "localisation": 0.0,
+      "remedy": 0.0,
+      "component_match": null,
+      "file_hit": null,
+      "file_f1": null,
+      "symbol_hit": null,
+      "root_cause": null,
+      "proposed_fix": null,
+      "root_cause_rationale": null,
+      "fix_rationale": null,
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": null,
+      "contradicts_ground_truth": null,
+      "cost_usd": 0.0,
+      "duration_s": 38.499216,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 5,
+        "allowed": 2,
+        "denied": 3,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e1-qwen-qwen3-8-flash-ed13e8e5/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e0-deepseek-deepseek-v4-flash-0731-382f99e8",
+      "bug_id": "lp-2012647",
+      "environment": "E0",
+      "channel_set": "full",
+      "model": "deepseek/deepseek-v4-flash-0731",
+      "outcome": "ok",
+      "score": 0.8599999999999999,
+      "diagnosis": 1.0,
+      "localisation": 0.7,
+      "remedy": 1.0,
+      "component_match": true,
+      "file_hit": false,
+      "file_f1": 0.0,
+      "symbol_hit": true,
+      "root_cause": "The openstack-upgrade action runs the config-changed-postupgrade hook, which re-processes existing domain-backend relations via update_all_domain_backends() -> domain_backend_changed() -> create_or_show_domain(). That path resolves/creates the domain by talking to the local Keystone admin API - the apache2 WSGI vhost listening on localhost:35347. While the unit is paused (the documented paused-single-unit upgrade procedure}, those WSGI processes are intentionally stopped, so the HTTP call to /v3/auth/tokens gets Connection refused and the resulting RuntimeError aborts the post-upgrade hook, failing the whole action even though package installation succeeded. This is a bug in the charm: the post-upgrade domain-backend reconciliation assumes the local Keystone API is available, an assumption that does not hold for paused upgrades when a domain-backend relation is present.",
+      "proposed_fix": "Make the post-upgrade domain-backend reconciliation tolerant of a paused unit instead of failing the upgrade. Before re-processing domain-backend relations, check whether the unit is paused (e.g., is_unit_paused()} or whether the local Keystone admin API is reachable; if not, skip/defer that reconciliation (logging a warning} and let it complete once the unit is resumed - e.g., by re-running config-changed-postupgrade or the relation-changed hooks on resume, or by having the resume path flush any deferred domain-backend updates. Alternatively, wrap the per-relation calls (create_or_show_domain / the manager HTTP calls} so that a connection error records the domain-backend update as pending rather than raising, allowing the action to complete while paused and reconciling domains once services are back up.",
+      "root_cause_rationale": "The agent identifies the exact failing path: config-changed-postupgrade -> update_all_domain_backends() -> domain_backend_changed() -> create_or_show_domain(), with an unguarded call to the local Keystone admin API that is down while the unit is paused, producing a connection-refused RuntimeError and aborting the openstack-upgrade action. This matches the ground truth and also-acceptable framing. The only questionable detail is the specific admin port number (35347), a minor factual error that does not affect the mechanism.",
+      "fix_rationale": "The proposed fix targets the correct defect: guard the post-upgrade domain-backend reconciliation with a pause check (is_unit_paused()) or otherwise defer/skip it while the local Keystone API is unavailable, then reconcile after resume. This is substantively the fix implied by the missing is_unit_paused_set() guard in the ground truth.",
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": 1,
+      "contradicts_ground_truth": false,
+      "cost_usd": 0.0027541049999999997,
+      "duration_s": 352.119064,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 6,
+        "allowed": 3,
+        "denied": 3,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e0-deepseek-deepseek-v4-flash-0731-382f99e8/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e0-google-gemini-3-8-flash-49ee8e49",
+      "bug_id": "lp-2012647",
+      "environment": "E0",
+      "channel_set": "full",
+      "model": "google/gemini-3.8-flash",
+      "outcome": "ok",
+      "score": 0.94,
+      "diagnosis": 1.0,
+      "localisation": 0.8,
+      "remedy": 1.0,
+      "component_match": true,
+      "file_hit": true,
+      "file_f1": 0.3333333333333333,
+      "symbol_hit": true,
+      "root_cause": "During an action-managed upgrade on a paused Keystone unit, the openstack-upgrade action invokes the config-changed-postupgrade hook. This hook unconditionally calls update_all_domain_backends(), which in turn calls domain_backend_changed() and create_or_show_domain(). The create_or_show_domain() function uses KeystoneManager to resolve or create the domain via an HTTP REST API call to http://localhost:35347/v3/auth/tokens; however, because the unit is intentionally paused, the local Apache2/WSGI daemon process serving the Keystone admin API is stopped, resulting in a connection refused error (Errno 111) that fails the upgrade action.",
+      "proposed_fix": "Modify the charm so that domain backend API operations are not executed while the unit is paused. Specifically, update_all_domain_backends() (or config_changed_postupgrade / domain_backend_changed) should check whether the unit is paused using is_paused() or similar helpers, and skip calling create_or_show_domain() when paused. The domain creation and backend verification should be deferred until the unit is resumed via the resume action, when the Keystone WSGI services are running again.",
+      "root_cause_rationale": "The agent correctly identifies the core issue: domain_backend_changed() calls create_or_show_domain() which queries the local Keystone admin API, and this call lacks a pause guard, so when the unit is paused the API is down and the upgrade fails. This matches the ground truth and the also-acceptable framing.",
+      "fix_rationale": "The proposed fix to add a pause check (is_paused() or similar) before calling create_or_show_domain() and deferring the operation until resume is exactly the correct approach, substantively matching the actual fix described in the ground truth.",
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": 0,
+      "contradicts_ground_truth": false,
+      "cost_usd": 0.288548925,
+      "duration_s": 396.711539,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 12,
+        "allowed": 9,
+        "denied": 3,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e0-google-gemini-3-8-flash-49ee8e49/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e2-qwen-qwen3-8-flash-281540a7",
+      "bug_id": "lp-2012647",
+      "environment": "E2",
+      "channel_set": "full",
+      "model": "qwen/qwen3.8-flash",
+      "outcome": "no_answer",
+      "score": 0.0,
+      "diagnosis": 0.0,
+      "localisation": 0.0,
+      "remedy": 0.0,
+      "component_match": null,
+      "file_hit": null,
+      "file_f1": null,
+      "symbol_hit": null,
+      "root_cause": null,
+      "proposed_fix": null,
+      "root_cause_rationale": null,
+      "fix_rationale": null,
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": null,
+      "contradicts_ground_truth": null,
+      "cost_usd": 0.0,
+      "duration_s": 38.787792,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 6,
+        "allowed": 2,
+        "denied": 4,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e2-qwen-qwen3-8-flash-281540a7/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e1-google-gemini-3-8-flash-78d6ad7f",
+      "bug_id": "lp-2012647",
+      "environment": "E1",
+      "channel_set": "full",
+      "model": "google/gemini-3.8-flash",
+      "outcome": "ok",
+      "score": 0.946,
+      "diagnosis": 1.0,
+      "localisation": 0.8200000000000001,
+      "remedy": 1.0,
+      "component_match": true,
+      "file_hit": true,
+      "file_f1": 0.4,
+      "symbol_hit": true,
+      "root_cause": "During an action-managed upgrade on a paused unit, openstack-upgrade re-executes config-changed-postupgrade, which unconditionally calls update_all_domain_backends. When domain-backend relations (like keystone-ldap) exist and the unit is the leader with an initialized database, domain_backend_changed attempts to create or verify domains by contacting the local Keystone WSGI API endpoint via KeystoneManagerProxy. However, because the unit is paused, the Apache/WSGI daemon is stopped, causing connection refused errors to localhost.",
+      "proposed_fix": "In domain_backend_changed (or update_all_domain_backends / config_changed_postupgrade), check if the unit is paused (using is_unit_paused_set()) or if the API is ready before attempting to contact the local Keystone API or create domains. If the unit is paused, defer domain backend creation/update until the unit is resumed.",
+      "root_cause_rationale": "The agent correctly identifies that during an action-managed upgrade on a paused unit, openstack-upgrade re-executes config-changed-postupgrade, which calls update_all_domain_backends. It correctly pinpoints domain_backend_changed attempting to contact the local Keystone WSGI API endpoint while the unit is paused and Apache/WSGI daemon is stopped, causing connection refused errors. This matches the ground truth and acceptable framing.",
+      "fix_rationale": "The proposed fix (checking is_unit_paused_set() before contacting the local Keystone API and deferring domain backend creation/update until resumed) is substantively the actual fix that would be applied, matching the required guard described in the ground truth.",
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": 0,
+      "contradicts_ground_truth": false,
+      "cost_usd": 0.0,
+      "duration_s": 355.55852,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 72,
+        "allowed": 68,
+        "denied": 4,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e1-google-gemini-3-8-flash-78d6ad7f/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e2-deepseek-deepseek-v4-flash-0731-1f14b32d",
+      "bug_id": "lp-2012647",
+      "environment": "E2",
+      "channel_set": "full",
+      "model": "deepseek/deepseek-v4-flash-0731",
+      "outcome": "timeout",
+      "score": 0.0,
+      "diagnosis": 0.0,
+      "localisation": 0.0,
+      "remedy": 0.0,
+      "component_match": null,
+      "file_hit": null,
+      "file_f1": null,
+      "symbol_hit": null,
+      "root_cause": null,
+      "proposed_fix": null,
+      "root_cause_rationale": null,
+      "fix_rationale": null,
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": null,
+      "contradicts_ground_truth": null,
+      "cost_usd": 0.006394356,
+      "duration_s": 353.615747,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 47,
+        "allowed": 18,
+        "denied": 29,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e2-deepseek-deepseek-v4-flash-0731-1f14b32d/transcript.jsonl"
+    },
+    {
+      "run_id": "lp-2012647-e2-google-gemini-3-8-flash-de436722",
+      "bug_id": "lp-2012647",
+      "environment": "E2",
+      "channel_set": "full",
+      "model": "google/gemini-3.8-flash",
+      "outcome": "ok",
+      "score": 0.9357142857142857,
+      "diagnosis": 1.0,
+      "localisation": 0.7857142857142858,
+      "remedy": 1.0,
+      "component_match": true,
+      "file_hit": true,
+      "file_f1": 0.28571428571428575,
+      "symbol_hit": true,
+      "root_cause": "During the openstack-upgrade action on a paused unit, the charm executes config-changed-postupgrade which invokes update_all_domain_backends() -> domain_backend_changed() -> create_or_show_domain(). This attempts to contact the local keystone admin API on localhost, but the apache2 service hosting keystone WSGI is stopped while the unit is paused.",
+      "proposed_fix": "In config-changed-postupgrade (or domain_backend_changed / update_all_domain_backends), check if the unit is paused before attempting to query or update domain backends via the Keystone API, deferring the domain backend synchronization until the unit is resumed, or ensure the check handles is_unit_paused().",
+      "root_cause_rationale": "Matches the ground truth: config-changed-postupgrade -> update_all_domain_backends() -> domain_backend_changed() -> create_or_show_domain() attempts to contact the local Keystone admin API while the unit is paused, and fails because the local API is down.",
+      "fix_rationale": "Proposes adding an is_unit_paused() guard before querying/updating domain backends via the Keystone API and deferring the work until resume, which is substantively the correct fix.",
+      "ground_truth_root_cause": "The keystone charm's config-changed-postupgrade hook (run by the openstack-upgrade action)\ncalls update_all_domain_backends(), which calls domain_backend_changed() for every\ndomain-backend relation (e.g. keystone-ldap). domain_backend_changed() unconditionally calls\ncreate_or_show_domain(), which queries the local Keystone admin API through manager.py.\nUnlike the charm's other identity-relation hooks, domain_backend_changed() had no\nis_unit_paused_set() guard around that call. When the documented paused-single-unit upgrade\nprocedure pauses the keystone unit before running the openstack-upgrade action, the local\nKeystone API (served by apache2 on the admin port) is down, so the API call raises a\nConnectionRefusedError/RuntimeError and the hook crashes, breaking the procedure whenever a\ndomain-backend relation is present.",
+      "unsupported_specifics": 0,
+      "contradicts_ground_truth": false,
+      "cost_usd": 0.0,
+      "duration_s": 353.648828,
+      "leak_attempts": 1,
+      "netlog": {
+        "total_requests": 33,
+        "allowed": 25,
+        "denied": 8,
+        "leak_attempts": 1
+      },
+      "transcript_path": "results/runs/lp-2012647-e2-google-gemini-3-8-flash-de436722/transcript.jsonl"
     }
   ]
 }

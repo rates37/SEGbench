@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useDashboard } from '../lib/dashboardCtx';
 import type { RunRow } from '../lib/types';
+import { HelpButton } from '../components/HelpButton';
 
 /** Run drilldown (plan.md section 11): filterable table down to the individual run — cell
  * coordinates, outcome, scores, the agent's answer, the judge's rationale, the ground truth, and
@@ -22,7 +23,16 @@ export function RunDrilldownView() {
   }, [runs, search]);
 
   return (
-    <div className="flex h-full gap-4 p-4">
+    <div className="flex h-full flex-col gap-2 p-4">
+      <h2 className="text-lg font-semibold">
+        Run drilldown
+        <HelpButton>
+          Every individual run, filterable by run id / bug id / model. Click a row to see the
+          agent's answer, the judge's rationale, and the ground truth side by side. The transcript
+          itself is never shown here — only its path on disk.
+        </HelpButton>
+      </h2>
+      <div className="flex flex-1 gap-4 overflow-hidden">
       <div className="flex-1 overflow-auto rounded border border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="sticky top-0 border-b border-[var(--color-border)] bg-[var(--color-surface)] p-2">
           <input
@@ -124,6 +134,7 @@ export function RunDrilldownView() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDashboard } from '../lib/dashboardCtx';
+import { HelpButton } from '../components/HelpButton';
 
 /** Bug × model matrix (plan.md section 11): small-multiple grid, bugs as rows, models as
  * columns, cell colour by score. Sortable by mean difficulty, groupable by product. */
@@ -30,7 +31,15 @@ export function BugModelMatrixView() {
 
   return (
     <div className="p-4">
-      <h2 className="mb-1 text-lg font-semibold">Bug × model matrix</h2>
+      <h2 className="mb-1 text-lg font-semibold">
+        Bug × model matrix
+        <HelpButton>
+          One row per bug, one column per model. Cell colour is that model's score on that bug
+          (averaged over environments/channel sets in view). A bug that's uniformly bright across
+          every model is too easy to be useful; a bug that's uniformly dark for everyone is worth
+          checking — the ground truth may be wrong rather than the bug being hard.
+        </HelpButton>
+      </h2>
       <p className="mb-3 text-xs text-[var(--color-text-muted)]">
         Reveals trivial bugs (uniformly high — drop them) and impossible ones (uniformly low —
         check the ground truth).

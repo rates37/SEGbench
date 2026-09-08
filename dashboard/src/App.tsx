@@ -3,10 +3,10 @@ import { useCampaignData } from './lib/data';
 import { DashboardProvider } from './lib/DashboardContext';
 import { readTabFromUrl } from './lib/filters';
 import { RepeatsBanner } from './components/RepeatsBanner';
+import { EnvironmentLegend } from './components/EnvironmentLegend';
 import { FilterBar } from './components/FilterBar';
 import { OverviewView } from './views/OverviewView';
 import { HeatmapView } from './views/HeatmapView';
-import { InformationGainView } from './views/InformationGainView';
 import { BugModelMatrixView } from './views/BugModelMatrixView';
 import { FailureModesView } from './views/FailureModesView';
 import { CostFrontierView } from './views/CostFrontierView';
@@ -15,7 +15,6 @@ import { RunDrilldownView } from './views/RunDrilldownView';
 const TABS = [
   { id: 'overview', label: 'Overview', Component: OverviewView },
   { id: 'heatmap', label: 'Model × environment', Component: HeatmapView },
-  { id: 'gain', label: 'Information gain', Component: InformationGainView },
   { id: 'matrix', label: 'Bug × model', Component: BugModelMatrixView },
   { id: 'failures', label: 'Failure modes', Component: FailureModesView },
   { id: 'frontier', label: 'Cost / score', Component: CostFrontierView },
@@ -66,6 +65,7 @@ function App() {
           </p>
         </header>
         <RepeatsBanner />
+        <EnvironmentLegend />
         <FilterBar />
         <nav className="flex flex-wrap gap-1 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm">
           {TABS.map((t) => (

@@ -102,6 +102,18 @@ class RunCost(BaseModel):
     tripped: bool = False
 
 
+def _session_cost_usd(raw_session: str) -> float | None:
+    """opencode stamps its own real, provider-reported dollar cost on the session
+    (``info.cost``) — this is authoritative where the proxy's cost meter is only ever as good
+    as ``[netpol.pricing]``, which defaults to empty and would otherwise silently report $0.00."""
+    try:
+        data = json.loads(raw_session)
+    except json.JSONDecodeError:
+        return None
+    cost = (data.get("info") or {}).get("cost") if isinstance(data, dict) else None
+    return float(cost) if isinstance(cost, int | float) else None
+
+
 class RunRecord(BaseModel):
     """One line of ``results/runs.jsonl``. See the module docstring for the invariant it serves."""
 
@@ -288,6 +300,7 @@ def execute_run(
     )
     agent_result: AgentRunResult | None = None
     transcript_error: str | None = None
+    session_cost_usd: float | None = None
 
     try:
         is_lxd = isinstance(runtime, LXDRuntime)
@@ -367,6 +380,7 @@ def execute_run(
                     agent_user=definition.agent_user,
                 )
                 (results_dir / "session.json").write_text(raw_session, encoding="utf-8")
+                session_cost_usd = _session_cost_usd(raw_session)
                 messages = extract_transcript(raw_session)
                 write_transcript(messages, results_dir / "transcript.jsonl")
             except (RuntimeFailure, TranscriptError) as exc:
@@ -426,7 +440,8 @@ def execute_run(
         cost=RunCost(
             prompt_tokens=proxy_run.meter.prompt_tokens,
             completion_tokens=proxy_run.meter.completion_tokens,
-            usd=proxy_run.meter.usd,
+            usd=session_cost_usd if session_cost_usd is not None else proxy_run.meter.usd,
+            estimated=session_cost_usd is None,
             tripped=proxy_run.meter.tripped,
         ),
         leak_attempts=leak_attempts,

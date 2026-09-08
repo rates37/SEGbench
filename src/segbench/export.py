@@ -142,6 +142,15 @@ def _run_row(j: Joined, ground_truth_by_bug: dict[str, str]) -> RunRow:
     )
 
 
+class BugMeta(BaseModel):
+    """Per-bug metadata the dashboard needs for filters (product, tags), absent from aggregates."""
+
+    bug_id: str
+    product: str
+    tags: list[str]
+    difficulty_hint: str | None
+
+
 class CampaignMetadata(BaseModel):
     generated_at: str
     repeats: int
@@ -183,6 +192,7 @@ class ExportDocument(BaseModel):
     schema_version: int
     campaign: CampaignMetadata
     aggregates: Aggregates
+    bugs: list[BugMeta]
     runs: list[RunRow]
 
 
@@ -213,11 +223,23 @@ def build_export(
     aggregates = compute_aggregates(settings, bugs, joined, low_confidence_n=low_confidence_n)
     ground_truth_by_bug = {bug.id: bug.ground_truth.root_cause for bug in bugs}
     run_rows = [_run_row(j, ground_truth_by_bug) for j in joined]
+    bug_meta = [
+        BugMeta(
+            bug_id=bug.id,
+            product=bug.manifest.product.value,
+            tags=bug.manifest.tags,
+            difficulty_hint=bug.manifest.difficulty_hint.value
+            if bug.manifest.difficulty_hint
+            else None,
+        )
+        for bug in bugs
+    ]
 
     return ExportDocument(
         schema_version=SCHEMA_VERSION,
         campaign=_campaign_metadata(settings, runs),
         aggregates=aggregates,
+        bugs=bug_meta,
         runs=run_rows,
     )
 

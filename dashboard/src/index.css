@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* Neutral palette + a single accent, colour-blind-safe diverging scale (blue/orange, not
+   red/green) for anything that must show sign (information gain, heatmap deltas). */
+:root {
+  --color-bg: #f7f7f8;
+  --color-surface: #ffffff;
+  --color-border: #dcdce1;
+  --color-text: #1c1c22;
+  --color-text-muted: #62626b;
+  --color-accent: #5b5bd6;
+  --color-accent-muted: #eceafc;
+  --color-negative: #d1652f;
+  --color-negative-bg: #fbe9df;
+  --color-positive: #2f6fa8;
+  --color-positive-bg: #e2edf5;
+  --color-warn-bg: #fff6dd;
+  --color-warn-border: #e8c766;
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: 15px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+code {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.85em;
+}

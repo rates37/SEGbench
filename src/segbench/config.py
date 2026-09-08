@@ -124,6 +124,32 @@ class RuntimeConfig(BaseModel):
     ready_timeout_s: float = Field(default=90.0, gt=0)
 
 
+class ModelPrice(BaseModel):
+    """USD per million tokens for one model, used by the proxy's cost meter (plan.md sec. 5.2)."""
+
+    input_per_million_usd: float = Field(ge=0.0)
+    output_per_million_usd: float = Field(ge=0.0)
+
+
+class NetpolConfig(BaseModel):
+    """Egress proxy and git-mirror addressing (plan.md section 5.1 and 5.2).
+
+    ``mirror_host``/``mirror_port`` are reserved here so E2's allowlist entry is stable across
+    phases even though the mirror listener itself is phase 4 (plan.md section 13) — the ACL, the
+    ``/etc/hosts`` pin list and the proxy's policy model all need one fixed answer for "where is
+    the mirror" today.
+    """
+
+    #: Interface the per-run proxy listeners bind on. ``0.0.0.0`` so both the host's loopback (for
+    #: tests) and the LXD bridge gateway address (for real containers) can reach the same socket.
+    bind_host: str = "0.0.0.0"
+    mirror_host: str = "127.0.0.1"
+    mirror_port: int = 18080
+    #: Price table keyed on model id string, e.g. ``models.<id>`` or the judge's model string. A
+    #: model absent here is still metered in tokens; its USD figure is reported as an estimate.
+    pricing: dict[str, ModelPrice] = Field(default_factory=dict)
+
+
 class CorpusConfig(BaseModel):
     """Tunables for ``segbench corpus validate`` (plan.md section 3.4).
 
@@ -169,6 +195,7 @@ class Settings(BaseSettings):
     scoring: ScoringConfig = Field(default_factory=ScoringConfig)
     corpus: CorpusConfig = Field(default_factory=CorpusConfig)
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
+    netpol: NetpolConfig = Field(default_factory=NetpolConfig)
 
     concurrency: int = Field(default=4, ge=1)
     verbose: bool = False

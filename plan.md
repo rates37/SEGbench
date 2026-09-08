@@ -290,6 +290,35 @@ Belt and braces: the container's `/etc/hosts` pins the denied hosts to `127.0.0.
 in the container drops outbound traffic not destined for the proxy or mirror. Defence in depth,
 because a single misconfigured LXD profile should not silently invalidate a week of runs.
 
+### 5.1.1 Network enforcement decisions (phase 3)
+
+Detail settled while implementing §5.1, recorded here so the code and the plan agree.
+
+**Dedicated networks, not ACLs.** §5.1 hedged between a shared network with per-container ACLs and
+one network per run, preferring ACLs "if the LXD version supports network ACLs cleanly." It
+doesn't, here: `security.acls` is rejected as an invalid device option on this host's LXD (5.21
+LTS) for a bridge NIC, in both the classic `nictype=bridged,parent=<net>` form and the modern
+`network=<net>` shorthand — confirmed by hand against a real container before writing any
+enforcement code. `segbench.netpol.enforce` therefore takes the plan's own explicit fallback: one
+dedicated LXD network per named policy (`segbench-e0`, `segbench-e1`, `segbench-e2`), created with
+`ipv4.address=auto` (no subnet to guess or collide with the host's other networks),
+`ipv4.nat=false` and `ipv4.routing=false` (no path in or out of the bridge at all — confirmed by
+hand: a container on such a network cannot reach a public IP, but can still reach the host's own
+gateway address on that bridge, which is exactly where the per-run proxy listener binds) and no
+IPv6. The container's only NIC is this dedicated network; `NetworkPolicy.acls` stays a real,
+documented mechanism on the runtime protocol for a backend where it does work, but nothing in
+`netpol` relies on it today.
+
+**`lxc launch --device` takes exactly one key/value pair per occurrence.** Its own `--help` says so
+("New key/value to apply to a specific device," singular), but it is easy to write
+`--device eth0,type=nic,network=foo,name=eth0` once and have it work by accident on some LXD
+versions; on others it silently mis-parses everything after the first `=` as one value and fails
+with a confusing "Invalid device type" error. `segbench.runtime.lxd.LXDRuntime.create` repeats the
+flag once per key. Repeating it is also what turns `eth0` from a profile-inherited device into an
+instance-level override — required regardless of ACLs, since a profile-inherited device cannot be
+modified in place (`lxc config device set` on it fails with "cannot be modified for individual
+instance").
+
 ### 5.2 Cost enforcement
 
 The proxy sits in the inference path, so it can parse usage from responses. It maintains a

@@ -23,6 +23,8 @@ from segbench.corpus.loader import CorpusError, load_bug
 from segbench.corpus.scrub import ScrubPolicy
 from segbench.corpus.validate import CorpusReport, validate_corpus
 from segbench.logging import configure_logging, get_logger
+from segbench.netpol.policy import build_policies
+from segbench.netpol.verify import VerifyReport, verify_policy
 from segbench.runtime.base import Runtime, RuntimeFailure
 from segbench.runtime.images import ImageBuilder, load_definitions
 from segbench.runtime.lxd import LXDRuntime, sanitise_name
@@ -45,11 +47,22 @@ corpus_app = typer.Typer(name="corpus", help="Load, validate and scaffold bug co
 image_app = typer.Typer(name="image", help="Build and inspect the base container image.")
 runtime_app = typer.Typer(name="runtime", help="Debug the container runtime backend.")
 mirror_app = typer.Typer(name="mirror", help="Manage the truncating git mirror.")
+netpol_app = typer.Typer(name="netpol", help="Egress proxy, allowlist and cost metering.")
 run_app = typer.Typer(name="run", help="Execute the run matrix.")
 grade_app = typer.Typer(name="grade", help="Grade completed runs.")
 export_app = typer.Typer(name="export", help="Export graded results for the dashboard.")
 
-for sub in (corpus_app, image_app, runtime_app, mirror_app, run_app, grade_app, export_app):
+_subcommands = (
+    corpus_app,
+    image_app,
+    runtime_app,
+    mirror_app,
+    netpol_app,
+    run_app,
+    grade_app,
+    export_app,
+)
+for sub in _subcommands:
     app.add_typer(sub)
 
 
@@ -391,6 +404,62 @@ def runtime_smoke(
 def mirror_sync(ctx: typer.Context, bug: Annotated[str, typer.Option(help="Bug id.")]) -> None:
     """Populate the truncating git mirror for one bug's target repository."""
     raise _todo(4, "mirror sync")
+
+
+def _print_verify_report(report: VerifyReport) -> None:
+    table = Table(title=f"netpol verify — {report.policy}", title_justify="left")
+    table.add_column("check")
+    table.add_column("expected")
+    table.add_column("result")
+    table.add_column("detail")
+    for result in report.results:
+        expected = "reachable" if result.check.expect_reachable else "blocked"
+        via = "via proxy" if result.check.via_proxy else "bypassing proxy"
+        status = "[green]pass[/green]" if result.passed else "[red]FAIL[/red]"
+        table.add_row(f"{result.check.name} ({via})", expected, status, result.detail)
+    console.print(table)
+    verdict = "[green]PASS[/green]" if report.ok else "[red]FAIL[/red]"
+    console.print(f"\n{verdict} — {report.policy}")
+
+
+@netpol_app.command("verify")
+def netpol_verify(
+    ctx: typer.Context,
+    env: Annotated[
+        str, typer.Option("--env", help="Policy to verify: E0, E1, E2, or 'all'.")
+    ] = "all",
+    image: Annotated[
+        str | None, typer.Option("--image", help="Image alias; default is the base image's alias.")
+    ] = None,
+) -> None:
+    """Prove a network policy holds against a real container.
+
+    Boots a container wired up exactly as a benchmark run would be — proxy, dedicated routeless
+    LXD network, /etc/hosts pins, iptables, the proxy's MITM CA — then asserts the inference
+    endpoint is reachable and that a representative set of tracker, search, package-index and
+    DNS-exfiltration destinations are not, some of them bypassing the proxy entirely to prove the
+    defence-in-depth layers hold on their own. This is the command to paste into documentation as
+    evidence the benchmark's no-leakage invariant (CLAUDE.md) is real rather than asserted.
+    """
+    settings = _settings(ctx)
+    runtime = _runtime(settings)
+
+    if image is None:
+        base = load_definitions(settings.runtime.image_definitions)["base"]
+        image = base.alias
+
+    policies = sorted(build_policies(settings)) if env.lower() == "all" else [env.upper()]
+    reports: list[VerifyReport] = []
+    for name in policies:
+        try:
+            report = verify_policy(runtime, image, name, settings)
+        except (RuntimeFailure, ValueError) as exc:
+            console.print(f"[red]error:[/red] {name}: {exc}")
+            raise typer.Exit(code=1) from exc
+        _print_verify_report(report)
+        reports.append(report)
+
+    raise typer.Exit(code=0 if all(r.ok for r in reports) else 1)
 
 
 @run_app.callback(invoke_without_command=True)

@@ -207,9 +207,18 @@ class LXDRuntime:
             # storage drivers that support quotas (zfs, btrfs, lvm — not dir).
             argv += ["-d", f"root,size={spec.limits.disk}"]
         if spec.network.network:
+            # `lxc launch --device` sets exactly one key/value pair per occurrence (its own
+            # `--help` calls it "New key/value to apply to a specific device", singular) — cramming
+            # `type=nic,network=...,name=...` into one occurrence makes the CLI parse everything
+            # after the first `=` as one value and fail with a confusing "Invalid device type"
+            # error. Repeating the flag also creates an *instance-level* override of `eth0` (an
+            # inherited profile device cannot have `security.acls` set on it directly), which is
+            # what makes the ACL attachment below possible at all.
             argv += [
                 "--device",
-                f"eth0,type=nic,nictype=bridged,parent={spec.network.network},name=eth0",
+                "eth0,type=nic",
+                "--device",
+                f"eth0,network={spec.network.network}",
             ]
 
         handle = Handle(

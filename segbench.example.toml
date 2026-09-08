@@ -66,6 +66,21 @@ memory = "4GiB"
 processes = 4096
 ready_timeout_s = 90.0
 
+# Egress proxy and git-mirror addressing (plan.md §5.1, §5.2). The proxy binds an ephemeral port
+# per run on `bind_host`; the mirror address is reserved now so E2's allowlist is stable even
+# though the mirror listener itself is phase 4.
+[netpol]
+bind_host = "0.0.0.0"
+mirror_host = "127.0.0.1"
+mirror_port = 18080
+
+# Price table for the proxy's cost meter, keyed on model id string. A model absent here is still
+# metered in tokens; its USD figure is reported as `estimated: true`. Empty by default — fill in
+# a price per model you actually run, e.g.:
+# [netpol.pricing."deepseek/deepseek-chat"]
+# input_per_million_usd = 0.14
+# output_per_million_usd = 0.28
+
 # Corpus validation (plan.md §3.4).
 [corpus]
 # Fraction of ground_truth.root_cause vocabulary appearing in a channel above which the channel is

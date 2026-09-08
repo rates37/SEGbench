@@ -1,12 +1,29 @@
 # SEGbench
 
-A benchmark harness measuring how well an LLM agent can **diagnose** real defects in Canonical
-products — Sunbeam, Charmed OpenStack, Juju, MicroK8s, the Ubuntu kernel. Each task is one real
-bug; the agent is scored on whether it identifies the right component, the right code, the right
-root cause and a plausible fix, not on producing a passing test.
+SEGbench measures how well an LLM agent can **diagnose** real bugs in Canonical products — Sunbeam,
+Charmed OpenStack, Juju, MicroK8s, the Ubuntu kernel. Each task is one real bug. The agent isn't
+asked to write a patch or pass a test — it's scored on whether it names the right component, the
+right code, and the right root cause, and proposes a plausible fix.
 
-`plan.md` is the design document and the source of truth. `CLAUDE.md` is the working context for
-coding agents.
+Each bug is run under three levels of source access (E0/E1/E2, see below) and several "channel
+sets" — which parts of the original bug report the agent gets to see. Removing one channel at a
+time (leave-one-out) and comparing the score to the full-context run tells you which piece of
+information actually mattered. This is the same idea as an occlusion sensitivity map for a CNN —
+blank out part of the input and see how much the output changes — just applied to pieces of a bug
+report instead of patches of an image, and to an LLM's diagnosis instead of a classifier's
+confidence.
+
+The three environments answer a related but separate question: how much does *source access*
+help?
+
+| | access | question it answers |
+|---|---|---|
+| **E0** | none, just the bug report | what does the model already know from training? |
+| **E1** | repo pinned to right before the fix, can't clone anything else | does having the code in front of it help, if it can't go looking? |
+| **E2** | can clone anything (through a mirror that still hides the fix) | does being able to *choose* what to read help further? |
+
+`plan.md` is the full design doc. `CLAUDE.md` is the working context for coding agents working on
+this repo.
 
 ## Setup
 
@@ -89,17 +106,18 @@ segbench export                                  # writes dashboard/public/data.
 cd dashboard && npm install && npm run build && npm run preview
 ```
 
-Open the printed preview URL to see the leaderboard, model×environment heatmap, information-gain
-chart, bug×model matrix, failure-mode breakdown, cost/score frontier, and a drillable run table —
-all rendered from `data.json`, no server or database involved.
+Open the printed preview URL to see the leaderboard, model×environment heatmap, bug×model matrix,
+failure-mode breakdown, cost/score frontier, and a drillable run table — all rendered from
+`data.json`, no server or database involved.
 
 ![segbench dashboard — overview/leaderboard view, rendered from a real end-to-end smoke campaign](docs/dashboard-screenshot.png)
 
-*Screenshot from the smoke campaign described in [docs/operations.md](docs/operations.md) — one
-real Launchpad bug, three environments, two models. `n=1` bug; this is a pipeline demonstration, not
-a capability result. See [docs/methodology.md](docs/methodology.md) for what the benchmark measures
-and its current limitations, and [docs/operations.md](docs/operations.md) for running a full
-campaign, budget planning, resumption, and troubleshooting.*
+The only bug in the corpus right now is a real one:
+[LP #2012647](https://bugs.launchpad.net/charm-keystone/+bug/2012647), a charm-keystone bug where
+`openstack-upgrade` fails on a paused unit. That's not enough bugs to say anything about which
+model is "better" — it's there to prove the pipeline runs end to end on a real report. See
+[docs/methodology.md](docs/methodology.md) for what the benchmark measures and its current
+limitations, and [docs/operations.md](docs/operations.md) for running a full campaign.
 
 ## Documentation
 

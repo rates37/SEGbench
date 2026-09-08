@@ -23,6 +23,11 @@ from segbench.corpus.loader import CorpusError, load_bug
 from segbench.corpus.scrub import ScrubPolicy
 from segbench.corpus.validate import CorpusReport, validate_corpus
 from segbench.logging import configure_logging, get_logger
+from segbench.runtime.base import Runtime, RuntimeFailure
+from segbench.runtime.images import ImageBuilder, load_definitions
+from segbench.runtime.lxd import LXDRuntime, sanitise_name
+from segbench.runtime.podman import PodmanRuntime
+from segbench.runtime.smoke import run_smoke
 
 log = get_logger(__name__)
 
@@ -38,12 +43,13 @@ app = typer.Typer(
 
 corpus_app = typer.Typer(name="corpus", help="Load, validate and scaffold bug corpus entries.")
 image_app = typer.Typer(name="image", help="Build and inspect the base container image.")
+runtime_app = typer.Typer(name="runtime", help="Debug the container runtime backend.")
 mirror_app = typer.Typer(name="mirror", help="Manage the truncating git mirror.")
 run_app = typer.Typer(name="run", help="Execute the run matrix.")
 grade_app = typer.Typer(name="grade", help="Grade completed runs.")
 export_app = typer.Typer(name="export", help="Export graded results for the dashboard.")
 
-for sub in (corpus_app, image_app, mirror_app, run_app, grade_app, export_app):
+for sub in (corpus_app, image_app, runtime_app, mirror_app, run_app, grade_app, export_app):
     app.add_typer(sub)
 
 
@@ -236,10 +242,149 @@ def corpus_derive(
         console.print(f"\nwrote fix.files and fix.symbols to {directory / 'ground_truth.yaml'}")
 
 
+def _runtime(settings: Settings) -> Runtime:
+    """Build the configured backend. Raises :class:`BackendUnavailable` if it is not usable."""
+    backend: Runtime
+    if settings.runtime.backend == "lxd":
+        backend = LXDRuntime(project=settings.runtime.lxd_project)
+    else:
+        backend = PodmanRuntime()
+    backend.preflight()
+    return backend
+
+
+def _builder(settings: Settings) -> ImageBuilder:
+    """Build the image builder. LXD only: see segbench.runtime.podman for why."""
+    if settings.runtime.backend != "lxd":
+        console.print(
+            f"[red]error:[/red] image building requires the lxd backend; "
+            f"runtime.backend is {settings.runtime.backend!r}"
+        )
+        raise typer.Exit(code=2)
+    runtime = LXDRuntime(project=settings.runtime.lxd_project)
+    runtime.preflight()
+    return ImageBuilder(
+        runtime=runtime,
+        cache_dir=settings.paths.image_cache,
+        definitions_dir=settings.runtime.image_definitions,
+    )
+
+
 @image_app.command("build")
-def image_build(ctx: typer.Context) -> None:
-    """Build or refresh the base container image and record its digest."""
-    raise _todo(2, "image build")
+def image_build(
+    ctx: typer.Context,
+    overlay: Annotated[
+        str | None,
+        typer.Option(
+            "--overlay",
+            help="Build this product overlay (and its parents) instead of just the base.",
+        ),
+    ] = None,
+    force: Annotated[
+        bool, typer.Option("--force", help="Rebuild even if the definition is unchanged.")
+    ] = False,
+) -> None:
+    """Build or refresh the container image and record its digest.
+
+    Idempotent: an image whose definition and provisioning script are unchanged, and whose alias
+    still resolves to the recorded fingerprint, is left alone. The build needs outbound network
+    and takes several minutes from cold — see the README.
+    """
+    settings = _settings(ctx)
+    builder = _builder(settings)
+    try:
+        results = builder.build(overlay or "base", force=force)
+    except RuntimeFailure as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    for result in results:
+        if result.rebuilt:
+            console.print(
+                f"[green]built[/green] {result.name} -> {result.alias} "
+                f"({result.fingerprint[:12]}) in {result.duration_s:.0f}s"
+            )
+        else:
+            console.print(
+                f"[dim]up to date[/dim] {result.name} -> {result.alias} ({result.fingerprint[:12]})"
+            )
+
+
+@image_app.command("status")
+def image_status(ctx: typer.Context) -> None:
+    """Print every image definition, its alias, its digest and whether it is stale."""
+    settings = _settings(ctx)
+    builder = _builder(settings)
+    try:
+        statuses = builder.status()
+    except RuntimeFailure as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    table = Table(title="images", title_justify="left")
+    table.add_column("name")
+    table.add_column("alias")
+    table.add_column("digest")
+    table.add_column("built (UTC)")
+    table.add_column("status")
+
+    for status in statuses:
+        colour = "green" if not status.stale else "yellow"
+        table.add_row(
+            status.name,
+            status.alias,
+            status.fingerprint[:12] if status.fingerprint else "-",
+            status.built_at.strftime("%Y-%m-%d %H:%M") if status.built_at else "-",
+            f"[{colour}]{status.summary}[/{colour}]",
+        )
+    console.print(table)
+
+
+@runtime_app.command("smoke")
+def runtime_smoke(
+    ctx: typer.Context,
+    image: Annotated[
+        str | None,
+        typer.Option("--image", help="Image alias to test; default is the base image's alias."),
+    ] = None,
+) -> None:
+    """Create a container, exec, push, pull, kill a background process, and destroy it.
+
+    A debug command: it proves the runtime layer end to end and prints per-step timings. Killing
+    it mid-run leaves no container behind — the backend registers every container it creates with
+    a cleanup registry that fires on SIGINT and on exit.
+    """
+    settings = _settings(ctx)
+    runtime = _runtime(settings)
+
+    base = load_definitions(settings.runtime.image_definitions)["base"]
+    if image is None:
+        if settings.runtime.backend != "lxd":
+            console.print("[red]error:[/red] pass --image; only the lxd backend has a default")
+            raise typer.Exit(code=2)
+        image = base.alias
+
+    try:
+        result = run_smoke(runtime, image, name_factory=sanitise_name, agent_user=base.agent_user)
+    except RuntimeFailure as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    table = Table(title=f"runtime smoke ({result.backend})", title_justify="left")
+    table.add_column("step")
+    table.add_column("seconds", justify="right")
+    table.add_column("detail")
+    for step in result.steps:
+        table.add_row(step.name, f"{step.duration_s:.2f}", step.detail)
+    console.print(table)
+    console.print(f"image {result.image} ({result.image_digest[:12]})")
+    console.print(f"container {result.container}")
+
+    if result.ok:
+        console.print(f"\n[green]PASS[/green] — {result.total_s:.1f}s total")
+    else:
+        console.print(f"\n[red]FAILED[/red] — {result.error}")
+    raise typer.Exit(code=0 if result.ok else 1)
 
 
 @mirror_app.command("sync")
@@ -284,8 +429,17 @@ def export_results(ctx: typer.Context) -> None:
 
 
 def main() -> None:
-    """Console-script entry point."""
-    app()
+    """Console-script entry point.
+
+    ``Ctrl-C`` exits 130 without a traceback. The containers are already gone by this point: the
+    runtime's cleanup registry destroys them from inside the signal handler, before the
+    ``KeyboardInterrupt`` reaches here.
+    """
+    try:
+        app()
+    except KeyboardInterrupt:
+        console.print("\n[yellow]interrupted[/yellow] — containers cleaned up")
+        raise typer.Exit(code=130) from None
 
 
 if __name__ == "__main__":

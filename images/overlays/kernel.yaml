@@ -1,0 +1,39 @@
+# Product overlay for Ubuntu kernel bugs (plan.md §9).
+#
+# Overlays exist so the base image stays small: only kernel tasks pay for crash and the kernel
+# tooling. Selected by `bug.product`, which is why `products` below is the key the orchestrator
+# matches on rather than the overlay's name.
+#
+# Not privileged. Reading a vmcore or a decoded oops out of a bug report's attachments needs the
+# analysis tools, not host capabilities. If a future overlay genuinely needs `security.privileged`
+# it must say why here and at the call site that sets it.
+
+name: kernel
+alias: segbench-kernel
+description: segbench kernel overlay — crash, kernel and trace tooling on top of the base image
+
+# Built on top of the local alias produced by the base definition, so a base rebuild invalidates
+# every overlay derived from it.
+parent: base
+
+products:
+  - kernel
+
+packages:
+  # Crash dump analysis.
+  - crash
+  - makedumpfile
+  # Kernel tooling: linux-tools-common carries perf and the tracing helpers. The kernel-version
+  # specific package cannot be installed in a container against the host's kernel, and is
+  # deliberately not attempted.
+  - linux-tools-common
+  - trace-cmd
+  # Symbol and binary inspection, for reading a decoded oops against a vmlinux.
+  - binutils
+  - elfutils
+  - dwarves
+  # Kernel source navigation.
+  - exuberant-ctags
+  - cscope
+
+provision: provision/kernel.sh

@@ -1,0 +1,55 @@
+# The base image every run boots from (plan.md §9).
+#
+# Contents: Ubuntu 24.04, Python 3.12, git, ripgrep, fd, jq, build-essential, the standard text
+# tooling an investigating agent reaches for, and `opencode`.
+#
+# Deliberately absent: any browser, any expectation of package-index access at runtime. If the
+# agent needs a package it does not have, that is part of the task's difficulty and is recorded
+# rather than worked around.
+#
+# The build needs outbound network (Ubuntu archive, the opencode installer). Runs do not; phase 3
+# takes the network away entirely.
+
+name: base
+alias: segbench-base
+description: segbench base image — Ubuntu 24.04, Python 3.12, git, opencode
+
+source:
+  remote: ubuntu
+  image: "24.04"
+
+# The unprivileged user the agent runs as (plan.md §10). Created by the provisioning script.
+agent_user: agent
+
+packages:
+  # Language runtimes. Python 3.12 is Ubuntu 24.04's system Python; naming it explicitly means a
+  # base-image change shows up as a build failure rather than as a silently different interpreter.
+  - python3
+  - python3-venv
+  - python3-pip
+  # Version control.
+  - git
+  # Search and navigation — what an agent reaches for first in an unfamiliar tree.
+  - ripgrep
+  - fd-find
+  - jq
+  - tree
+  - file
+  # Text tooling.
+  - less
+  - vim-tiny
+  - diffutils
+  - patch
+  - xz-utils
+  - unzip
+  - ca-certificates
+  # curl is here because the opencode installer needs it at *build* time. It is left in place
+  # rather than removed, because at run time the network policy makes it inert and a missing curl
+  # would send an agent down a "let me install curl" detour instead of a "there is no network"
+  # one. The image still makes no promise of internet access (plan.md §9).
+  - curl
+  # Build tooling, for bugs whose repositories need a compile step to be navigable.
+  - build-essential
+  - pkg-config
+
+provision: provision/base.sh

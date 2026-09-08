@@ -54,6 +54,18 @@ symbol_weight = 0.20
 unsupported_specific_penalty = 0.05
 max_penalty = 0.15
 
+# Container runtime (plan.md §9). LXD is primary; podman is a fallback with known gaps
+# (no image build, no network ACLs) and is not interchangeable for real campaigns.
+[runtime]
+backend = "lxd"                           # lxd | podman
+image_definitions = "images"
+# lxd_project = "segbench"                # unset uses the lxc client's current project
+cpu = 2
+memory = "4GiB"
+# disk = "20GiB"                          # only honoured on quota-capable storage pools
+processes = 4096
+ready_timeout_s = 90.0
+
 # Corpus validation (plan.md §3.4).
 [corpus]
 # Fraction of ground_truth.root_cause vocabulary appearing in a channel above which the channel is

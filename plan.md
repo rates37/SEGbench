@@ -460,6 +460,64 @@ Kernel bugs may eventually want an LXD **VM** rather than a container. The runti
 not assume container semantics, so a VM backend can be added without touching the orchestrator.
 Not implemented in v1.
 
+### 9.1 Runtime and image decisions (phase 2)
+
+Detail settled while implementing §9, recorded here so the code and the plan agree.
+
+**Provisioning is execs, not cloud-init.** §9 said "an LXD image built from a `cloud-init`
+profile". It is built by launching a container, running `apt-get` and a provisioning script as
+foreground execs, then `lxc publish`. cloud-init's failure mode is a container that boots, reports
+success, and is quietly missing half its packages; that surfaces days later as an unexplained agent
+failure. A foreground exec that fails, fails at the step that broke, with that step's stderr. The
+build still waits for the cloud image's own `cloud-init` to finish before touching apt, because
+racing first-boot `unattended-upgrades` produces an intermittent dpkg lock error that looks like a
+harness bug.
+
+**Idempotence is a definition hash.** A build is skipped when the definition file and its
+provisioning script hash to the value recorded in the image cache *and* the alias still resolves to
+the recorded fingerprint. The upstream Ubuntu image is deliberately not part of the hash — it moves
+underneath the harness, and `--force` is the way to pick up a refresh. The cache records what was
+built; LXD remains the authority on what exists, so fingerprints are re-read on every status and
+every build decision, and an image deleted behind the harness's back is detected rather than
+assumed. `image status` reports three distinct stale states: missing, definition changed, and
+rebuilt outside segbench.
+
+**Overlays are layered images, not composable ones.** An overlay names a `parent` and is built by
+provisioning on top of the parent's published alias, so a base rebuild invalidates everything
+derived from it. Overlays are selected by `bug.product`, which is the key they declare. A bug
+cannot get two overlays at once; if that is ever needed the answer is a combined definition, not a
+composition mechanism.
+
+**Privilege is not expressible in an image definition.** `ContainerSpec` carries a `privileged`
+flag because LXD offers it, but nothing in the harness sets it, and the image definition schema has
+no key for it — granting it requires a deliberate schema change rather than a line in a YAML file.
+The kernel overlay in particular does not need it: reading a dump or a decoded oops from a bug's
+attachments needs the analysis tools, not host capabilities.
+
+**Cleanup is a process-wide registry, and it runs on a worker thread.** Every backend registers a
+container the moment it exists — before the readiness wait, since a container that starts and then
+fails to become ready is the one most likely to be orphaned — and the registry destroys anything
+outstanding on SIGINT, SIGTERM and interpreter exit. The destroys run on a non-daemon worker
+thread: `Ctrl-C` at a terminal delivers SIGINT to the whole process group and the harness reliably
+sees two, and the second one interrupting the first one's delete leaves exactly the orphan the
+registry exists to prevent. Signals reach only the main thread, so a worker cannot be interrupted
+that way.
+
+`destroy` additionally retries while LXD reports the instance busy. Interrupting the harness
+mid-`create` kills the `lxc launch` client but leaves the server-side create operation running, and
+LXD refuses to delete an instance with an operation in flight.
+
+**Background processes are killed by an environment marker.** Killing the `lxc exec` client does
+not kill the process inside the container, so `exec_background` injects a unique token into the
+command's environment and `wait_or_kill` matches it against `/proc/*/environ` to kill the agent and
+everything it spawned. Without this the wall-clock cap is advisory and a run can keep spending
+budget after the harness has moved on.
+
+**The podman backend has documented gaps.** It cannot build images and cannot enforce network
+ACLs, and raises rather than degrading, because a run that believes it was policed and was not is
+the failure the invariants exist to prevent. Records carry the backend that produced them; runs
+from the two backends are not interchangeable.
+
 ## 10. Agent invocation
 
 `opencode` runs headless in the container as an unprivileged user with `/workspace` as cwd. Its

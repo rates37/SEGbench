@@ -101,6 +101,29 @@ class ScoringConfig(BaseModel):
     max_penalty: float = Field(default=0.15, ge=0.0, le=1.0)
 
 
+class RuntimeConfig(BaseModel):
+    """Container backend selection and per-container defaults (plan.md section 9).
+
+    ``backend`` picks the implementation of :class:`segbench.runtime.base.Runtime`. LXD is
+    primary; podman is a fallback with deliberate gaps, documented in
+    :mod:`segbench.runtime.podman`, and a run record must carry which one produced it.
+    """
+
+    backend: Literal["lxd", "podman"] = "lxd"
+    #: Where image definitions live. Overridable so tests can build against a fixture directory.
+    image_definitions: Path = Path("images")
+    #: LXD project to create instances in. ``None`` uses the client's current project.
+    lxd_project: str | None = None
+
+    cpu: int | None = 2
+    memory: str | None = "4GiB"
+    disk: str | None = None
+    processes: int | None = 4096
+
+    #: Seconds to wait for a fresh container to accept commands.
+    ready_timeout_s: float = Field(default=90.0, gt=0)
+
+
 class CorpusConfig(BaseModel):
     """Tunables for ``segbench corpus validate`` (plan.md section 3.4).
 
@@ -145,6 +168,7 @@ class Settings(BaseSettings):
     caps: CapsConfig = Field(default_factory=CapsConfig)
     scoring: ScoringConfig = Field(default_factory=ScoringConfig)
     corpus: CorpusConfig = Field(default_factory=CorpusConfig)
+    runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
 
     concurrency: int = Field(default=4, ge=1)
     verbose: bool = False

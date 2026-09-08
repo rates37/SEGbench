@@ -15,11 +15,13 @@ def test_help_works() -> None:
     result = runner.invoke(app, ["--help"])
 
     assert result.exit_code == 0
-    for group in ("corpus", "image", "mirror", "run", "grade", "export"):
+    for group in ("corpus", "image", "runtime", "mirror", "run", "grade", "export"):
         assert group in result.stdout
 
 
-@pytest.mark.parametrize("group", ["corpus", "image", "mirror", "run", "grade", "export"])
+@pytest.mark.parametrize(
+    "group", ["corpus", "image", "runtime", "mirror", "run", "grade", "export"]
+)
 def test_group_help_works(group: str) -> None:
     result = runner.invoke(app, [group, "--help"])
 
@@ -36,7 +38,6 @@ def test_version() -> None:
 @pytest.mark.parametrize(
     "argv",
     [
-        ["image", "build"],
         ["mirror", "sync", "--bug", "lp-1"],
         ["run"],
         ["grade"],

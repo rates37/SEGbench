@@ -1,0 +1,17 @@
+2024-03-11 04:09:55.112 20144 INFO neutron.agent.ovn.metadata.agent [-] Agent stopping, closing connections
+2024-03-11 04:09:55.220 20144 INFO neutron.common.ovn.utils [-] Southbound connection closed
+2024-03-11 04:10:02.407 20144 INFO neutron.agent.ovn.metadata.agent [-] Agent starting
+2024-03-11 04:10:02.955 20144 INFO neutron.common.ovn.utils [-] Connected to OVN southbound at ssl:10.5.0.31:6642
+2024-03-11 04:10:03.011 20144 INFO neutron.agent.ovn.metadata.agent [-] Chassis registration refreshed for chassis-a7c1
+2024-03-11 04:10:03.014 20144 INFO neutron.agent.ovn.metadata.agent [-] Reusing existing external_ids on chassis registration
+2024-03-11 04:10:41.882 20144 INFO neutron.agent.ovn.metadata.agent [-] Port binding event for port 5c2b8f1a-1d33-4a90-9d21-6f0a2e77c410
+2024-03-11 04:10:41.901 20144 INFO neutron.agent.ovn.metadata.agent [-] Provisioning namespace for network
+2024-03-11 04:10:41.977 20144 INFO neutron.agent.linux.external_process [-] Spawned haproxy with pid 20871
+2024-03-11 04:10:42.004 20144 WARNING neutron.agent.ovn.metadata.agent [-] Empty datapath while writing proxy configuration; continuing
+2024-03-11 04:12:07.883 20144 WARNING neutron.agent.ovn.metadata.server [-] Request from 169.254.169.254 has no matching upstream
+
+# Same host, before the maintenance window, for comparison:
+2024-03-09 22:14:11.502 3391 INFO neutron.agent.ovn.metadata.agent [-] Agent starting
+2024-03-09 22:14:12.118 3391 INFO neutron.agent.ovn.metadata.agent [-] Chassis registration created for chassis-a7c1
+2024-03-09 22:14:12.140 3391 INFO neutron.agent.ovn.metadata.agent [-] Datapath map populated: 14 entries
+2024-03-09 22:14:12.219 3391 INFO neutron.agent.linux.external_process [-] Spawned haproxy with pid 3502

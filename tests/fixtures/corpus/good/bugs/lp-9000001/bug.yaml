@@ -1,0 +1,40 @@
+# Synthetic fixture. Shaped like a Charmed OpenStack Launchpad bug, but every byte of it is
+# invented: the bug number, the commit hashes and the log excerpts do not correspond to a real
+# report. It exists so the corpus layer has something complete to validate against.
+id: lp-9000001
+title: Instances lose metadata access after upgrading the neutron charms
+product: charmed-openstack
+source:
+  tracker: launchpad
+  url: https://bugs.launchpad.net/charm-neutron-api/+bug/9000001
+  reported_at: 2024-03-11T09:20:00Z
+repo:
+  url: https://opendev.org/openstack/neutron
+  pre_fix_ref: 4c1de8a90b3f27ee5d0a1cb7f9a2e6d4831bb05c
+  build_setup: null
+difficulty_hint: medium
+tags: [networking, ovn, upgrade, metadata]
+channels:
+  - id: customer_report
+    file: channels/customer_report.md
+    origin: synthesised
+  - id: engineer_notes
+    file: channels/engineer_notes.md
+    origin: synthesised
+  - id: error_trace
+    file: channels/error_trace.txt
+    origin: synthesised
+  - id: version_manifest
+    file: channels/version_manifest.yaml
+    origin: synthesised
+  - id: service_logs
+    file: channels/service_logs.txt
+    origin: synthesised
+  - id: deployment_config
+    file: channels/deployment_config.yaml
+    origin: synthesised
+  - id: reproduction_steps
+    file: channels/reproduction_steps.md
+    origin: synthesised
+notes: |
+  Fixture bug. Used by the corpus tests as the "validates clean" case; keep it clean.

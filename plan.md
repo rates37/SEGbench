@@ -150,7 +150,43 @@ overlap with `ground_truth.root_cause` (token-level, flagged above a threshold f
 and the scrubber finds no credentials, IPs, MACs, hostnames matching customer patterns, or cloud
 account IDs.
 
-### 3.5 Corpus size
+### 3.5 Validation decisions (phase 1)
+
+Detail settled while implementing §3.4, recorded here so the code and the plan agree.
+
+**Severity.** Checks report findings at one of two severities, and `corpus validate` exits non-zero
+on any `error`. Hard failures: every scrubber detector, the fix commit hash, the fix URL, a review
+or patch link, and any bug that fails to load. Warnings, reported but not fatal: the root-cause
+similarity flag, an unreviewed ground truth, and an attachment that is not UTF-8 text and therefore
+could not be scrubbed. Similarity is deliberately advisory — a channel legitimately shares
+vocabulary with the diagnosis, so the score is a suspicion for a human, never proof.
+
+**Similarity is containment, not Jaccard.** The score is the fraction of `root_cause`'s content
+vocabulary (stopwords stripped) present in the channel. Oriented this way round because the question
+is "how much of the answer sits in this channel", and Jaccard would let a long channel dilute a
+total leak into a harmless-looking number.
+
+**Readiness.** A bug whose `ground_truth.reviewed_by` is unset loads and validates, but is marked
+not-ready and excluded from campaigns unless `--include-unreviewed` is passed. The maintainer has to
+be able to iterate on a bug before it is finished; what must not happen is an unreviewed bug
+silently contributing numbers to an aggregate.
+
+**Scrubber allowlists.** Every detector is paired with an allowlist of values safe by construction —
+non-global IP space (RFC1918, loopback, link-local, the RFC5737/RFC3849 documentation ranges),
+reserved MACs, and the RFC2606 documentation domains — extensible from the `[corpus]` config
+section. A checker that flags `127.0.0.1` gets switched off within a day, and a switched-off checker
+protects nothing. Customer hostname patterns are configured, not guessed: the default list is empty.
+
+**Findings never quote secrets.** A finding's excerpt keeps at most three leading and trailing
+characters of the match. The scrubber must not print a credential it just found into a terminal or
+a log file.
+
+**`corpus derive` writes in place.** `fix.files` and `fix.symbols` are rewritten by a line-level
+edit of `ground_truth.yaml` rather than a YAML round-trip, because these files are hand-maintained
+and their comments are load-bearing. In phase 1 the command reads the commit from a local clone
+given as `--repo`; phase 4 routes the same extraction through the mirror.
+
+### 3.6 Corpus size
 
 v1 targets 25–40 bugs, spread across products, with a `smoke` tag on 3–5 cheap ones for pipeline
 testing. Occlusion needs a reasonable per-channel sample, and with leave-one-out at 1 repeat, the

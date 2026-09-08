@@ -1,0 +1,24 @@
+root_cause: |
+  The OVN metadata proxy builds its haproxy configuration from a cached datapath mapping that is
+  populated once when the agent registers with the southbound database. During a charm upgrade the
+  agent reconnects, and the reconnection path rebuilds the chassis registration without repopulating
+  that mapping, so every subsequent proxy spawned for a network binds to an empty datapath and
+  answers on the wrong unix socket path. Existing proxies keep working because their configuration
+  was written before the reconnect, which is why only newly booted or newly migrated servers are
+  affected.
+component: neutron
+fix:
+  commit: 9b2e0f43a1c7d8e5f6021b4c8ad39e7f0c5a2b16
+  url: https://opendev.org/openstack/neutron/commit/9b2e0f43a1c7
+  files:
+    - neutron/agent/ovn/metadata/agent.py
+  symbols:
+    - MetadataAgent.sync
+acceptable_components: [neutron, neutron-api, ovn-metadata-agent, charm-neutron-api]
+also_acceptable_root_causes:
+  - |
+    Equivalent framing at the charm layer: the upgrade restarts the agent, and the agent's
+    reconnect handler skips the datapath cache refresh that the initial start performs, leaving
+    per-network proxies misconfigured until the agent is restarted a second time.
+provenance: authored
+reviewed_by: fixture-maintainer

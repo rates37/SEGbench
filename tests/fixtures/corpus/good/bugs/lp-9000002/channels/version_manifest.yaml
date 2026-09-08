@@ -1,0 +1,24 @@
+openstack_release: 2023.1
+ubuntu_series: jammy
+charms:
+  nova-compute:
+    channel: 2023.1/stable
+    revision: 649
+  nova-cloud-controller:
+    channel: 2023.1/stable
+    revision: 682
+  cinder:
+    channel: 2023.1/stable
+    revision: 631
+  cinder-ceph:
+    channel: 2023.1/stable
+    revision: 519
+packages:
+  nova-common: 3:27.1.0-0ubuntu1
+  nova-compute: 3:27.1.0-0ubuntu1
+  python3-nova: 3:27.1.0-0ubuntu1
+  python3-cinderclient: 1:9.3.0-0ubuntu1
+  python3-os-brick: 6.2.0-0ubuntu1
+  qemu-kvm: 1:6.2+dfsg-2ubuntu6.15
+  libvirt-daemon: 8.0.0-1ubuntu7.8
+juju_version: 3.1.5

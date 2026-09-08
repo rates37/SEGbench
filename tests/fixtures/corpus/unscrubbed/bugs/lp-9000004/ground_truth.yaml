@@ -1,0 +1,12 @@
+root_cause: |
+  Irrelevant to this fixture; the point is that the channels below were committed straight out of a
+  support bundle.
+component: nova
+fix:
+  commit: 3ad5c9f1e08b7642d5c31af9026bde748c0f31b2
+  url: https://opendev.org/openstack/nova/commit/3ad5c9f1e08b
+  files:
+    - nova/compute/manager.py
+  symbols: null
+provenance: authored
+reviewed_by: fixture-maintainer

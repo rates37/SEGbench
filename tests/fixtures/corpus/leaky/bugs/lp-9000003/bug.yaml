@@ -1,0 +1,26 @@
+# NEGATIVE fixture. This bug is deliberately leaky and MUST fail `corpus validate`:
+#   - engineer_notes quotes the fix commit in abbreviated form  -> fix_commit_reference
+#   - engineer_notes links the fix commit URL                   -> fix_url_reference
+#   - engineer_notes links a Gerrit review                      -> review_url_reference
+#   - customer_report restates ground_truth.root_cause          -> root_cause_similarity (warning)
+# Do not "fix" it. Its whole job is to fail.
+id: lp-9000003
+title: Agent leaks the answer into its own channels
+product: charmed-openstack
+source:
+  tracker: launchpad
+  url: https://bugs.launchpad.net/neutron/+bug/9000003
+  reported_at: 2024-03-11T09:20:00Z
+repo:
+  url: https://opendev.org/openstack/neutron
+  pre_fix_ref: 4c1de8a90b3f27ee5d0a1cb7f9a2e6d4831bb05c
+difficulty_hint: low
+tags: [fixture, negative]
+channels:
+  - id: customer_report
+    file: channels/customer_report.md
+    origin: synthesised
+  - id: engineer_notes
+    file: channels/engineer_notes.md
+    origin: synthesised
+notes: Negative fixture for the leakage checks.

@@ -101,6 +101,33 @@ class ScoringConfig(BaseModel):
     max_penalty: float = Field(default=0.15, ge=0.0, le=1.0)
 
 
+class CorpusConfig(BaseModel):
+    """Tunables for ``segbench corpus validate`` (plan.md section 3.4).
+
+    ``customer_host_patterns`` is empty by default. The maintainer knows their customers' naming
+    conventions; the harness does not, and guessing would produce noise that gets the whole check
+    switched off.
+    """
+
+    similarity_threshold: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Fraction of ground_truth.root_cause vocabulary present in a channel above which the "
+            "channel is flagged for human review. A warning, never a hard failure."
+        ),
+    )
+    customer_host_patterns: list[str] = Field(
+        default_factory=list, description="Regexes; a hostname matching one is a scrubber failure."
+    )
+    allow_values: list[str] = Field(
+        default_factory=list, description="Literal values the scrubber should never flag."
+    )
+    allow_email_domains: list[str] = Field(default_factory=list)
+    allow_mac_prefixes: list[str] = Field(default_factory=list)
+
+
 class Settings(BaseSettings):
     """Top-level harness configuration."""
 
@@ -117,6 +144,7 @@ class Settings(BaseSettings):
     judge: JudgeConfig = Field(default_factory=JudgeConfig)
     caps: CapsConfig = Field(default_factory=CapsConfig)
     scoring: ScoringConfig = Field(default_factory=ScoringConfig)
+    corpus: CorpusConfig = Field(default_factory=CorpusConfig)
 
     concurrency: int = Field(default=4, ge=1)
     verbose: bool = False

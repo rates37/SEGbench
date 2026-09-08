@@ -1,8 +1,8 @@
 """The ``segbench`` command-line entry point.
 
-Every command below is a phase-0 stub: the command groups, their names and their global options
-are fixed here so later phases have an obvious home, but each raises :class:`NotImplementedError`
-naming the phase that will implement it.
+The command groups, their names and their global options are fixed here so every phase has an
+obvious home. The ``corpus`` group is implemented (phase 1); the remaining commands are stubs that
+raise :class:`NotImplementedError` naming the phase that will implement them.
 """
 
 from __future__ import annotations
@@ -11,12 +11,23 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from rich.console import Console
+from rich.table import Table
 
 from segbench import __version__
 from segbench.config import Settings, load_settings
+from segbench.corpus.add import AddError, fetch_github, fetch_launchpad, next_steps, scaffold
+from segbench.corpus.derive import DeriveError, derive_fix, write_derived_fix
+from segbench.corpus.findings import Severity
+from segbench.corpus.loader import CorpusError, load_bug
+from segbench.corpus.scrub import ScrubPolicy
+from segbench.corpus.validate import CorpusReport, validate_corpus
 from segbench.logging import configure_logging, get_logger
 
 log = get_logger(__name__)
+
+#: Command *output* goes to stdout so it can be piped; log lines go to stderr via `logging`.
+console = Console()
 
 app = typer.Typer(
     name="segbench",
@@ -73,26 +84,156 @@ def _settings(ctx: typer.Context) -> Settings:
     return ctx.obj if isinstance(ctx.obj, Settings) else load_settings(None)
 
 
+def _scrub_policy(settings: Settings) -> ScrubPolicy:
+    """Build the scrubber's policy from the ``[corpus]`` config section."""
+    return ScrubPolicy(
+        customer_host_patterns=tuple(settings.corpus.customer_host_patterns),
+        allow_values=tuple(settings.corpus.allow_values),
+        allow_email_domains=tuple(settings.corpus.allow_email_domains),
+        allow_mac_prefixes=tuple(settings.corpus.allow_mac_prefixes),
+    )
+
+
+def _print_corpus_report(report: CorpusReport) -> None:
+    """Render the validation pass: a per-bug summary table, then the findings themselves."""
+    for message in report.load_errors:
+        console.print(f"[red]load error:[/red] {message}")
+
+    table = Table(title="corpus validation", title_justify="left")
+    table.add_column("bug")
+    table.add_column("channels", justify="right")
+    table.add_column("ready")
+    table.add_column("errors", justify="right")
+    table.add_column("warnings", justify="right")
+    table.add_column("status")
+
+    for bug in report.bugs:
+        table.add_row(
+            bug.bug_id,
+            str(bug.channel_count),
+            "yes" if bug.ready else "no",
+            str(len(bug.errors)),
+            str(len(bug.warnings)),
+            "[green]pass[/green]" if bug.ok else "[red]FAIL[/red]",
+        )
+    console.print(table)
+
+    for bug in report.bugs:
+        for finding in bug.findings:
+            colour = "red" if finding.severity is Severity.ERROR else "yellow"
+            excerpt = f" ({finding.excerpt})" if finding.excerpt else ""
+            console.print(
+                f"[{colour}]{finding.severity.value}[/{colour}] {finding.location} "
+                f"{finding.detector}: {finding.message}{excerpt}"
+            )
+
+    verdict = "[green]OK[/green]" if report.ok else "[red]FAILED[/red]"
+    console.print(
+        f"\n{verdict} — {len(report.bugs)} bug(s), {report.error_count} error(s), "
+        f"{report.warning_count} warning(s)"
+    )
+
+
 @corpus_app.command("validate")
-def corpus_validate(ctx: typer.Context) -> None:
-    """Check every bug against the schema, the leakage rules and the scrubber."""
-    raise _todo(1, "corpus validate")
+def corpus_validate(
+    ctx: typer.Context,
+    bug: Annotated[
+        str | None, typer.Option("--bug", help="Validate only this bug id; default is all.")
+    ] = None,
+) -> None:
+    """Check every bug against the schema, the leakage rules and the scrubber.
+
+    Exits non-zero on any hard failure: a bug that will not load, a scrubber hit, or a channel
+    referencing the fix. Similarity flags and unreviewed ground truths are warnings and do not
+    fail the run.
+    """
+    settings = _settings(ctx)
+    report = validate_corpus(
+        settings.paths.corpus,
+        bug_ids=[bug] if bug else None,
+        policy=_scrub_policy(settings),
+        similarity_threshold=settings.corpus.similarity_threshold,
+    )
+    _print_corpus_report(report)
+    raise typer.Exit(code=0 if report.ok else 1)
 
 
 @corpus_app.command("add")
 def corpus_add(
     ctx: typer.Context,
-    launchpad: Annotated[str | None, typer.Option(help="Launchpad bug number.")] = None,
-    github: Annotated[str | None, typer.Option(help="GitHub issue URL.")] = None,
+    launchpad: Annotated[
+        str | None, typer.Option(help="Launchpad bug number, e.g. 2048221.")
+    ] = None,
+    github: Annotated[
+        str | None, typer.Option(help="GitHub issue reference, as OWNER/REPO#NUMBER.")
+    ] = None,
+    force: Annotated[
+        bool, typer.Option("--force", help="Overwrite an existing scaffold for this bug.")
+    ] = False,
 ) -> None:
-    """Scaffold a bug directory from a tracker into a raw/ staging area."""
-    raise _todo(1, "corpus add")
+    """Scaffold a bug directory from a tracker into a raw/ staging area.
+
+    Fetches tracker metadata and comments only. Splitting raw text into channels is a supervised
+    step (plan.md section 3.4) and is deliberately not automated.
+    """
+    settings = _settings(ctx)
+    if bool(launchpad) == bool(github):
+        console.print("[red]error:[/red] pass exactly one of --launchpad or --github")
+        raise typer.Exit(code=2)
+
+    try:
+        fetched = fetch_launchpad(launchpad) if launchpad else fetch_github(github or "")
+        directory = scaffold(fetched, settings.paths.corpus, force=force)
+    except AddError as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(next_steps(directory))
 
 
 @corpus_app.command("derive")
-def corpus_derive(ctx: typer.Context, bug: Annotated[str, typer.Option(help="Bug id.")]) -> None:
-    """Derive ground_truth fix.files and fix.symbols mechanically from the fix commit."""
-    raise _todo(1, "corpus derive")
+def corpus_derive(
+    ctx: typer.Context,
+    bug: Annotated[str, typer.Option("--bug", help="Bug id.")],
+    repo: Annotated[
+        Path, typer.Option("--repo", help="Path to a local clone containing the fix commit.")
+    ],
+    commit: Annotated[
+        str | None,
+        typer.Option("--commit", help="Override ground_truth.fix.commit for this derivation."),
+    ] = None,
+    write: Annotated[
+        bool, typer.Option("--write/--no-write", help="Write the result into ground_truth.yaml.")
+    ] = True,
+) -> None:
+    """Derive ground_truth fix.files and fix.symbols mechanically from the fix commit.
+
+    Phase 1 reads the commit from a local clone; phase 4 will route this through the truncating
+    mirror. These two fields are never hand-maintained (plan.md section 3.3).
+    """
+    settings = _settings(ctx)
+    directory = settings.paths.corpus / "bugs" / bug
+    try:
+        loaded = load_bug(directory)
+        derived = derive_fix(repo, commit or loaded.ground_truth.fix.commit)
+    except (CorpusError, DeriveError) as exc:
+        console.print(f"[red]error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"commit {derived.commit}")
+    console.print(f"files ({len(derived.files)}):")
+    for path in derived.files:
+        console.print(f"  {path}")
+    if derived.symbols is None:
+        console.print("symbols: null (no extractor for this bug's languages)")
+    else:
+        console.print(f"symbols ({len(derived.symbols)}):")
+        for symbol in derived.symbols:
+            console.print(f"  {symbol}")
+
+    if write:
+        write_derived_fix(directory / "ground_truth.yaml", derived)
+        console.print(f"\nwrote fix.files and fix.symbols to {directory / 'ground_truth.yaml'}")
 
 
 @image_app.command("build")

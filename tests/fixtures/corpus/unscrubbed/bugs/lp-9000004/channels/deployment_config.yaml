@@ -1,0 +1,13 @@
+credentials:
+  auth_url: https://keystone.acmecorp.internal:5000/v3
+  username: svc-nova
+  password: 8Hq2vLpZx4Tn6Wd0
+  aws_access_key_id: AKIAIOSFODNN7EXAMPLE
+  account_id: 123456789012
+signing_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  MIIEowIBAAKCAQEAxfakeKeyMaterialForAFixtureOnlyNotARealKeyAtAll0000
+  -----END RSA PRIVATE KEY-----
+placeholders_that_should_not_be_flagged:
+  password: REDACTED
+  api_key: <redacted>

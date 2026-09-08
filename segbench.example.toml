@@ -53,3 +53,16 @@ file_f1_weight = 0.30
 symbol_weight = 0.20
 unsupported_specific_penalty = 0.05
 max_penalty = 0.15
+
+# Corpus validation (plan.md §3.4).
+[corpus]
+# Fraction of ground_truth.root_cause vocabulary appearing in a channel above which the channel is
+# flagged for human review. A warning, never a hard failure.
+similarity_threshold = 0.5
+# Regexes matched against hostname-shaped tokens in channels and attachments. A match is a hard
+# scrubber failure. Empty by default: fill this in with your customers' naming conventions.
+customer_host_patterns = []
+# Escape hatches for values the detectors flag but which are known safe.
+allow_values = []
+allow_email_domains = []
+allow_mac_prefixes = []

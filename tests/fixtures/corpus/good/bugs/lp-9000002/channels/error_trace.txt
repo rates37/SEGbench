@@ -1,0 +1,18 @@
+2024-05-02 11:44:19.552 4471 ERROR nova.compute.manager [req-8d21ac4e-59b0-4c17-9d3e-2a6f1b0e77c5] [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Instance failed to spawn
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/nova/compute/manager.py", line 2761, in _build_resources
+    yield resources
+  File "/usr/lib/python3/dist-packages/nova/compute/manager.py", line 2521, in _build_and_run_instance
+    self.driver.spawn(context, instance, image_meta,
+  File "/usr/lib/python3/dist-packages/nova/virt/libvirt/driver.py", line 4288, in spawn
+    xml = self._get_guest_xml(context, instance, network_info,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/nova/virt/libvirt/driver.py", line 7112, in _get_guest_xml
+    conf = self._get_guest_config(instance, network_info, image_meta,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/nova/virt/block_device.py", line 649, in get_connection_info
+    connection_info = volume_api.attachment_get(context, self['attachment_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/nova/volume/cinder.py", line 890, in attachment_get
+    _reraise(exception.VolumeAttachmentNotFound(attachment_id=attachment_id))
+nova.exception.VolumeAttachmentNotFound: Volume attachment 0a4c7e51-2b8f-4d19-9a03-77e6c1b5df20 could not be found.

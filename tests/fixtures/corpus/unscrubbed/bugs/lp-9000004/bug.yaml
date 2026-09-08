@@ -1,0 +1,25 @@
+# NEGATIVE fixture. This bug is deliberately unscrubbed and MUST fail `corpus validate` on the
+# scrubber: routable IPv4 and IPv6 addresses, a MAC, a real-looking email, an AWS access key id and
+# account id, a PEM private key header, a `password:` assignment, and a hostname matching the
+# customer pattern the scrubber test configures (`\.acmecorp\.internal$`).
+# Do not "fix" it. Its whole job is to fail.
+id: lp-9000004
+title: Support bundle pasted into the corpus without scrubbing
+product: charmed-openstack
+source:
+  tracker: reproduction
+  url: null
+  reported_at: 2024-06-01T00:00:00Z
+repo:
+  url: https://opendev.org/openstack/nova
+  pre_fix_ref: 1f7b6c0e42d9a835bb1e0f74c62a9d31e5807aaf
+difficulty_hint: low
+tags: [fixture, negative]
+channels:
+  - id: system_environment
+    file: channels/system_environment.md
+    origin: verbatim
+  - id: deployment_config
+    file: channels/deployment_config.yaml
+    origin: verbatim
+notes: Negative fixture for the scrubber.

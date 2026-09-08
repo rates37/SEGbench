@@ -1,0 +1,15 @@
+root_cause: |
+  The reconnection path rebuilds the chassis registration without repopulating the cached datapath
+  mapping, so every proxy spawned afterwards binds an empty datapath and answers on the wrong
+  socket path.
+component: neutron
+fix:
+  commit: 9b2e0f43a1c7d8e5f6021b4c8ad39e7f0c5a2b16
+  url: https://opendev.org/openstack/neutron/commit/9b2e0f43a1c7
+  files:
+    - neutron/agent/ovn/metadata/agent.py
+  symbols:
+    - MetadataAgent.sync
+acceptable_components: [neutron]
+provenance: authored
+reviewed_by: fixture-maintainer

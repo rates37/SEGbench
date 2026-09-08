@@ -1,0 +1,14 @@
+2024-03-11 04:12:07.884 20144 ERROR neutron.agent.ovn.metadata.server [-] Unexpected error.
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/neutron/agent/ovn/metadata/server.py", line 88, in __call__
+    return self._proxy_request(instance_id, project_id, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/neutron/agent/ovn/metadata/server.py", line 131, in _proxy_request
+    raise ConnectionError(
+neutron.agent.ovn.metadata.server.ConnectionError: could not reach the upstream socket
+/var/lib/neutron/metadata_proxy for datapath '' after 3 attempts
+
+2024-03-11 04:12:07.884 20144 ERROR neutron.agent.ovn.metadata.server Traceback (most recent call last):
+2024-03-11 04:12:07.884 20144 ERROR neutron.agent.ovn.metadata.server   File "/usr/lib/python3/dist-packages/eventlet/wsgi.py", line 590, in handle_one_response
+2024-03-11 04:12:07.884 20144 ERROR neutron.agent.ovn.metadata.server     result = self.application(self.environ, start_response)
+2024-03-11 04:12:07.884 20144 ERROR neutron.agent.ovn.metadata.server ConnectionError: could not reach the upstream socket

@@ -1,0 +1,26 @@
+# Collected by the field engineer during the call. The customer could not tell us which revision
+# they upgraded *from*, only that it was "whatever was on stable in the autumn".
+openstack_release: 2023.2
+ubuntu_series: jammy
+charms:
+  neutron-api:
+    channel: 2023.2/stable
+    revision: 561
+  neutron-api-plugin-ovn:
+    channel: 2023.2/stable
+    revision: 84
+  ovn-central:
+    channel: 23.09/stable
+    revision: 152
+  ovn-chassis:
+    channel: 23.09/stable
+    revision: 152
+  nova-compute:
+    channel: 2023.2/stable
+    revision: 673
+packages:
+  neutron-common: 2:23.1.0-0ubuntu1
+  neutron-ovn-metadata-agent: 2:23.1.0-0ubuntu1
+  ovn-host: 23.09.0-0ubuntu1
+  python3-neutron: 2:23.1.0-0ubuntu1
+juju_version: 3.1.6

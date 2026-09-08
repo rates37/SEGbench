@@ -36,7 +36,6 @@ def test_version() -> None:
 @pytest.mark.parametrize(
     "argv",
     [
-        ["corpus", "validate"],
         ["image", "build"],
         ["mirror", "sync", "--bug", "lp-1"],
         ["run"],

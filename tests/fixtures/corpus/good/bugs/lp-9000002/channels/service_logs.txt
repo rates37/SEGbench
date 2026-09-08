@@ -1,0 +1,13 @@
+2024-05-02 11:43:47.019 4471 INFO nova.compute.manager [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Rebuilding instance on this host
+2024-05-02 11:43:47.284 4471 INFO nova.virt.block_device [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Refreshing connection info for volume 7e3a1c58-0f4d-4c11-b8ea-9d0247fa3c66
+2024-05-02 11:43:47.512 4471 INFO nova.volume.cinder [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Created new attachment 5f9d21b7-6c40-4a8e-8b12-04ca77e93a51
+2024-05-02 11:43:47.640 4471 DEBUG nova.objects.block_device [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Saving block device mapping, 4 field(s) changed
+2024-05-02 11:43:48.105 4471 INFO nova.compute.manager [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Rebuild complete, instance is SHUTOFF
+2024-05-02 11:44:18.771 4471 INFO nova.compute.manager [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Starting instance
+2024-05-02 11:44:19.004 4471 DEBUG nova.virt.block_device [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Using attachment 0a4c7e51-2b8f-4d19-9a03-77e6c1b5df20 from stored mapping
+2024-05-02 11:44:19.550 4471 ERROR nova.volume.cinder [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Attachment lookup returned 404
+2024-05-02 11:44:49.882 4471 INFO nova.compute.manager [instance: 6b1f0d2c-98a4-4b7a-b0e1-3c5d90aa4412] Instance moved to ERROR
+
+# Storage service, same window:
+2024-05-02 11:43:47.498 2210 INFO cinder.api.v3.attachments [req-2ca8f0e1] Create attachment for volume 7e3a1c58-0f4d-4c11-b8ea-9d0247fa3c66
+2024-05-02 11:44:19.548 2210 WARNING cinder.api.v3.attachments [req-9be14d07] Attachment 0a4c7e51-2b8f-4d19-9a03-77e6c1b5df20 not found; it was deleted at 2024-05-02T11:41:02Z

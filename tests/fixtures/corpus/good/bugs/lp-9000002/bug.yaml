@@ -1,0 +1,40 @@
+# Synthetic fixture, shaped like a Charmed OpenStack nova bug. Invented in full: the bug number,
+# the commit and the logs do not correspond to a real report.
+id: lp-9000002
+title: Volume-backed servers fail to start after an evacuation
+product: charmed-openstack
+source:
+  tracker: launchpad
+  url: https://bugs.launchpad.net/nova/+bug/9000002
+  reported_at: 2024-05-02T14:05:00Z
+repo:
+  url: https://opendev.org/openstack/nova
+  pre_fix_ref: 1f7b6c0e42d9a835bb1e0f74c62a9d31e5807aaf
+  build_setup: null
+difficulty_hint: high
+tags: [compute, cinder, evacuate, block-device-mapping]
+channels:
+  - id: customer_report
+    file: channels/customer_report.md
+    origin: synthesised
+  - id: engineer_notes
+    file: channels/engineer_notes.md
+    origin: synthesised
+  - id: error_trace
+    file: channels/error_trace.txt
+    origin: synthesised
+  - id: version_manifest
+    file: channels/version_manifest.yaml
+    origin: synthesised
+  - id: service_logs
+    file: channels/service_logs.txt
+    origin: synthesised
+  - id: system_environment
+    file: channels/system_environment.md
+    origin: synthesised
+  - id: reproduction_steps
+    file: channels/reproduction_steps.md
+    origin: synthesised
+notes: |
+  Fixture bug. The second "validates clean" case; it carries system_environment where lp-9000001
+  carries deployment_config, so the tests have a bug pair with differing channel inventories.

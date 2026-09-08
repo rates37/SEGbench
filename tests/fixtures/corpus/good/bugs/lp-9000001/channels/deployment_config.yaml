@@ -1,0 +1,31 @@
+# Trimmed `juju status --format yaml` plus the relevant application config.
+model:
+  name: openstack
+  controller: prod-controller
+  cloud: maas-dc1
+applications:
+  neutron-api:
+    charm-channel: 2023.2/stable
+    units: 3
+    status: active
+    options:
+      enable-ml2-port-security: true
+      neutron-security-groups: true
+      manage-neutron-plugin-legacy-mode: false
+  neutron-api-plugin-ovn:
+    charm-channel: 2023.2/stable
+    status: active
+  ovn-chassis:
+    charm-channel: 23.09/stable
+    subordinate-to: [nova-compute]
+    status: active
+    options:
+      bridge-interface-mappings: "br-ex:ens5"
+      ovn-bridge-mappings: "physnet1:br-ex"
+  nova-compute:
+    charm-channel: 2023.2/stable
+    units: 6
+    status: active
+    options:
+      config-flags: "force_config_drive=False"
+      enable-live-migration: true

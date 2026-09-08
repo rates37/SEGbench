@@ -1,0 +1,26 @@
+root_cause: |
+  When a server is rebuilt on a replacement hypervisor, the compute manager refreshes the block
+  device mappings from the volume service but writes the refreshed attachment identifiers only into
+  its in-memory copy. The persistent record keeps the identifier belonging to the dead hypervisor,
+  because the save path filters out fields it considers derived. The next power-on therefore asks
+  the storage service to look up an attachment that was deleted along with the old connection, and
+  the lookup fails with a not-found that the manager surfaces as a generic instance failure. Only
+  volume-backed servers are affected because an image-backed server has no such record to refresh.
+component: nova
+fix:
+  commit: 3ad5c9f1e08b7642d5c31af9026bde748c0f31b2
+  url: https://opendev.org/openstack/nova/commit/3ad5c9f1e08b
+  files:
+    - nova/compute/manager.py
+    - nova/virt/block_device.py
+  symbols:
+    - ComputeManager._rebuild_default_impl
+    - DriverVolumeBlockDevice.refresh_connection_info
+acceptable_components: [nova, nova-compute, openstack-nova]
+also_acceptable_root_causes:
+  - |
+    Equivalent framing at the storage layer: the refreshed attachment is never persisted, so the
+    stale identifier left over from the previous hypervisor is what the following power-on presents
+    to the storage service, which no longer recognises it.
+provenance: authored
+reviewed_by: fixture-maintainer

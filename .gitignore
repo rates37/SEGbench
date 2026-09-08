@@ -216,3 +216,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- segbench ---
+# Run records, transcripts and logs. Tracked only as an empty directory.
+results/*
+!results/.gitkeep
+
+# Container image cache and build artefacts
+.cache/
+images/*.tar.gz
+images/*.squashfs
+
+# Local secrets and machine-local config
+segbench.toml
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/

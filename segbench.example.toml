@@ -1,0 +1,55 @@
+# segbench configuration.
+#
+# Copy to `segbench.toml` and edit. Every value below can also be overridden by an
+# environment variable named `SEGBENCH_<SECTION>__<FIELD>`, e.g.
+#   SEGBENCH_CAPS__WALL_CLOCK_S=600
+#   SEGBENCH_PROVIDER__KIND=copilot
+#   SEGBENCH_CONCURRENCY=8
+#
+# API keys are never written here. They are read from the environment variable named
+# by `provider.api_key_env` and are never logged or serialised.
+
+concurrency = 4
+verbose = false
+
+[paths]
+corpus = "corpus"
+results = "results"
+image_cache = ".cache/images"
+log_file = "results/segbench.jsonl"
+
+[provider]
+kind = "openrouter"                       # openrouter | copilot
+base_url = "https://openrouter.ai/api/v1"
+api_key_env = "OPENROUTER_API_KEY"
+
+# The model matrix: every model under test. Claude models are deliberately absent
+# (CLAUDE.md invariant 6) and must only be added by the maintainer.
+[[models]]
+id = "deepseek/deepseek-chat"
+label = "DeepSeek V3"
+
+[[models]]
+id = "qwen/qwen-2.5-coder-32b-instruct"
+label = "Qwen2.5 Coder 32B"
+
+[judge]
+model = "deepseek/deepseek-v4-flash"
+prompt_version = "v1"
+temperature = 0.0
+
+[caps]
+wall_clock_s = 300
+max_cost_usd = 5.00
+repeats = 1
+
+# Composite score weights (plan.md §7.3). Stamped onto every grade record.
+[scoring]
+diagnosis_weight = 0.50
+localisation_weight = 0.30
+remedy_weight = 0.20
+component_weight = 0.50
+file_f1_weight = 0.30
+symbol_weight = 0.20
+unsupported_specific_penalty = 0.05
+max_penalty = 0.15

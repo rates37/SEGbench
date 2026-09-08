@@ -39,7 +39,6 @@ def test_version() -> None:
     "argv",
     [
         ["run"],
-        ["grade"],
         ["export"],
     ],
 )
@@ -49,6 +48,14 @@ def test_stubs_raise_not_implemented(argv: list[str]) -> None:
     assert result.exit_code != 0
     assert isinstance(result.exception, NotImplementedError)
     assert "phase" in str(result.exception)
+
+
+def test_grade_with_no_runs_does_nothing_and_exits_clean(tmp_path) -> None:
+    config = tmp_path / "segbench.toml"
+    config.write_text(f'[paths]\nresults = "{tmp_path / "results"}"\n', encoding="utf-8")
+    result = runner.invoke(app, ["--config", str(config), "grade"])
+
+    assert result.exit_code == 0
 
 
 def test_mirror_sync_reports_a_clear_error_for_an_unknown_bug(tmp_path) -> None:
